@@ -70,7 +70,11 @@ function onMockChange() {
           step="0.05"
           @change="persistSettings()"
         />
-        <button class="primary-btn extra" type="button" @click="speak('这里是大夫山森林公园。语音讲解已打开。', { force: true })">
+        <button
+          class="primary-btn extra"
+          type="button"
+          @click="speak('这里是大夫山森林公园。语音讲解已打开。', { force: true, clip: 'test' })"
+        >
           试听语音
         </button>
       </article>

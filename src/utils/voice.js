@@ -1,205 +1,128 @@
 import { app } from '../stores/app'
 
+const base = import.meta.env.BASE_URL || './'
+
+let player = null
 let unlocked = false
 let speakingText = ''
-let currentAudio = null
-let resumeTimer = 0
-let pendingTimer = 0
-let fallbackTimer = 0
 
-const SILENT_WAV =
-  'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'
-
-function synth() {
-  return window.speechSynthesis || null
+function srcOf(clip) {
+  return `${base}audio/${clip}.m4a`
 }
 
-function pickVoice(lang) {
-  const voices = synth()?.getVoices?.() || []
-  if (!voices.length) return null
-  if (lang === 'yue') {
-    return (
-      voices.find((v) => /zh-HK|yue|cantonese/i.test(`${v.lang} ${v.name}`)) ||
-      voices.find((v) => /zh/i.test(v.lang))
-    )
-  }
-  return (
-    voices.find((v) => /zh-CN|cmn-Hans|Chinese\s*\(China\)| Ting|Xiaoxiao|Yaoyao/i.test(`${v.lang} ${v.name}`)) ||
-    voices.find((v) => /zh-CN|zh_CN/i.test(v.lang)) ||
-    voices.find((v) => /zh/i.test(v.lang))
-  )
+function getPlayer() {
+  if (player) return player
+  player = new Audio()
+  player.preload = 'auto'
+  player.setAttribute('playsinline', 'true')
+  player.setAttribute('webkit-playsinline', 'true')
+  player.setAttribute('x5-playsinline', 'true')
+  player.controls = false
+  return player
 }
 
-function volume() {
-  return Math.min(1, Math.max(0.2, Number(app.volume) || 0.9))
+export function clipForPoi(id) {
+  return id ? `poi/${id}` : ''
 }
 
-function clearTimers() {
-  window.clearTimeout(pendingTimer)
-  window.clearTimeout(fallbackTimer)
-  window.clearInterval(resumeTimer)
-  pendingTimer = 0
-  fallbackTimer = 0
-  resumeTimer = 0
-}
-
-function stopAudio() {
-  if (!currentAudio) return
-  currentAudio.onended = null
-  currentAudio.onerror = null
-  currentAudio.pause()
-  currentAudio.removeAttribute('src')
-  currentAudio.load()
-  currentAudio = null
+export function clipForGuide(guide) {
+  if (!guide) return 'nav-plan'
+  if (guide.arrived) return 'nav-arrived'
+  if (guide.text === '正在规划路线') return 'nav-plan'
+  if (guide.text === '即将到达目的地') return 'nav-soon'
+  if (guide.nextTurn === '左转') return 'nav-left'
+  if (guide.nextTurn === '右转') return 'nav-right'
+  if (guide.nextTurn === '掉头') return 'nav-uturn'
+  return 'nav-forward'
 }
 
 export function unlockVoice() {
-  if (unlocked) return
+  const a = getPlayer()
+  if (unlocked && a.src) return
   try {
-    const s = synth()
-    if (s) {
-      const warm = new SpeechSynthesisUtterance('。')
-      warm.volume = 0.01
-      warm.rate = 2
-      warm.lang = 'zh-CN'
-      s.speak(warm)
+    a.muted = true
+    a.src = srcOf('silent')
+    const play = a.play()
+    if (play && play.then) {
+      play
+        .then(() => {
+          a.pause()
+          a.muted = false
+          unlocked = true
+        })
+        .catch(() => {
+          a.muted = false
+        })
+    } else {
+      a.muted = false
+      unlocked = true
     }
-    const a = new Audio(SILENT_WAV)
-    a.volume = 0.01
-    a.play().catch(() => {})
-    unlocked = true
   } catch {
-    unlocked = true
+    a.muted = false
   }
 }
 
 export function stopVoice() {
   speakingText = ''
-  clearTimers()
-  stopAudio()
-  const s = synth()
-  if (s) {
-    try {
-      s.cancel()
-      s.resume()
-    } catch {
-      /* ignore */
-    }
+  const a = getPlayer()
+  a.onended = null
+  a.onerror = null
+  try {
+    a.pause()
+    a.currentTime = 0
+  } catch {
+    /* ignore */
   }
 }
 
 export function isSpeaking(text) {
-  const s = synth()
-  const audioOn = !!(currentAudio && !currentAudio.paused)
-  const synthOn = !!(s && (s.speaking || s.pending))
-  const waiting = !!pendingTimer
-  const active = audioOn || synthOn || waiting
-  if (text) return speakingText === text && active
-  return active
+  const a = getPlayer()
+  const on = !a.paused && !a.ended && a.currentTime > 0
+  if (text) return speakingText === text && on
+  return on
 }
 
-function finishIfCurrent(text, onEnd) {
-  if (speakingText === text) speakingText = ''
-  clearTimers()
-  onEnd?.()
-}
-
-function playAudioTts(text, onEnd) {
-  stopAudio()
-  const clip = text.slice(0, 180)
-  const sources = [
-    `https://dict.youdao.com/dictvoice?le=zh&audio=${encodeURIComponent(clip)}`,
-    `https://fanyi.baidu.com/gettts?lan=zh&text=${encodeURIComponent(clip)}&spd=5&source=web`,
-  ]
-  let index = 0
-
-  const tryNext = () => {
-    if (speakingText !== text) return
-    if (index >= sources.length) {
-      finishIfCurrent(text, onEnd)
-      return
-    }
-    const audio = new Audio(sources[index])
-    index += 1
-    audio.volume = volume()
-    currentAudio = audio
-    audio.onended = () => {
-      if (currentAudio === audio) currentAudio = null
-      finishIfCurrent(text, onEnd)
-    }
-    audio.onerror = () => {
-      if (currentAudio === audio) currentAudio = null
-      tryNext()
-    }
-    audio.play().catch(tryNext)
-  }
-
-  tryNext()
-}
-
-function startResumeWatch(s) {
-  window.clearInterval(resumeTimer)
-  resumeTimer = window.setInterval(() => {
-    if (!s.speaking) {
-      window.clearInterval(resumeTimer)
-      resumeTimer = 0
-      return
-    }
-    if (s.paused) s.resume()
-  }, 220)
-}
-
-export function speak(text, { force = false, onEnd } = {}) {
-  if (!text) return false
+export function speak(text, { force = false, onEnd, clip } = {}) {
   if (!force && !app.voiceEnabled) return false
+  const file = clip || 'test'
+  const a = getPlayer()
 
-  unlockVoice()
-  stopVoice()
-  speakingText = text
-
-  const s = synth()
-  if (!s) {
-    playAudioTts(text, onEnd)
-    return true
+  speakingText = text || file
+  a.onended = null
+  a.onerror = null
+  try {
+    a.pause()
+  } catch {
+    /* ignore */
   }
 
-  pendingTimer = window.setTimeout(() => {
-    pendingTimer = 0
-    if (speakingText !== text) return
+  a.muted = false
+  a.volume = Math.min(1, Math.max(0.2, Number(app.volume) || 0.9))
+  a.src = srcOf(file)
 
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = app.language === 'yue' ? 'zh-HK' : 'zh-CN'
-    u.volume = volume()
-    u.rate = app.fontSize === 'xlarge' ? 0.85 : 0.92
-    const voice = pickVoice(app.language)
-    if (voice) u.voice = voice
+  const done = () => {
+    if (speakingText === (text || file)) speakingText = ''
+    onEnd?.()
+  }
+  a.onended = done
+  a.onerror = done
 
-    u.onend = () => finishIfCurrent(text, onEnd)
-    u.onerror = () => {
-      if (speakingText !== text) return
-      playAudioTts(text, onEnd)
-    }
-
-    try {
-      s.resume()
-      s.speak(u)
-      startResumeWatch(s)
-      fallbackTimer = window.setTimeout(() => {
-        fallbackTimer = 0
-        if (speakingText === text && !s.speaking && !currentAudio) {
-          playAudioTts(text, onEnd)
-        }
-      }, 600)
-    } catch {
-      playAudioTts(text, onEnd)
-    }
-  }, 80)
-
+  const play = a.play()
+  if (play && play.catch) {
+    play.catch(() => {
+      unlockVoice()
+      a.muted = false
+      a.play().catch(done)
+    })
+  }
+  unlocked = true
   return true
 }
 
-if (typeof window !== 'undefined' && window.speechSynthesis) {
-  window.speechSynthesis.addEventListener?.('voiceschanged', () => {
-    synth()?.getVoices?.()
+if (typeof document !== 'undefined') {
+  const boot = () => unlockVoice()
+  document.addEventListener('WeixinJSBridgeReady', boot, false)
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.WeixinJSBridge) boot()
   })
 }

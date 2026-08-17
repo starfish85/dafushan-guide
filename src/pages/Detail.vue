@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { TYPE_META, getPoi, withDistance } from '../data/pois'
 import { userPoint } from '../stores/app'
 import { formatDistance } from '../utils/geo'
-import { isSpeaking, speak, stopVoice } from '../utils/voice'
+import { clipForPoi, isSpeaking, speak, stopVoice } from '../utils/voice'
 
 const route = useRoute()
 const router = useRouter()
@@ -27,6 +27,7 @@ function toggleVoice() {
   }
   const ok = speak(text, {
     force: true,
+    clip: clipForPoi(poi.value.id),
     onEnd: () => {
       playing.value = false
     },

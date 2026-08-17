@@ -7,7 +7,7 @@ import { getPoi } from '../data/pois'
 import { buildRoute, nextInstruction } from '../data/paths'
 import { app, userPoint } from '../stores/app'
 import { externalMapUrl, formatDistance, haversine, isInsidePark, walkMinutes } from '../utils/geo'
-import { speak, stopVoice } from '../utils/voice'
+import { clipForGuide, speak, stopVoice } from '../utils/voice'
 import { useGeolocation } from '../composables/useGeolocation'
 
 const route = useRoute()
@@ -58,7 +58,9 @@ function maybeSpeak() {
   const key = guide.value.arrived ? 'arrived' : guide.value.text
   if (key === lastSpoken.value) return
   lastSpoken.value = key
-  speak(guide.value.arrived ? `已经到达${dest.value?.name || '目的地'}` : guide.value.text)
+  speak(guide.value.arrived ? `已经到达${dest.value?.name || '目的地'}` : guide.value.text, {
+    clip: clipForGuide(guide.value),
+  })
 }
 
 let timer
