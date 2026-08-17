@@ -22,7 +22,7 @@ function start() {
 <template>
   <main class="page no-tab welcome">
     <div class="card photo">
-      <img class="hero" :src="`${base}images/welcome-hero.jpg?v=2`" alt="爱在大夫山" />
+      <img class="hero" :src="`${base}images/welcome-hero.jpg?v=3`" alt="爱在大夫山" />
     </div>
     <p class="eyebrow">广州 · 番禺</p>
     <h1>大夫山森林公园<br />欢迎您</h1>
@@ -52,6 +52,7 @@ function start() {
   width: 100%;
   height: 200px;
   object-fit: cover;
+  object-position: center 62%;
 }
 .eyebrow {
   margin: 0 0 6px;
