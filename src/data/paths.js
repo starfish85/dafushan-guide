@@ -1,5 +1,6 @@
 import { bearing, haversine, latLngToXy, turnLabel, xyToLatLng } from '../utils/geo'
 import { getPoi } from './pois'
+import { GRID_H, GRID_W, WALK_CELLS } from './roads'
 
 const GATE_IDS = ['gate-north', 'gate-east', 'gate-south', 'gate-southwest']
 
@@ -18,7 +19,6 @@ export function nearestGate(point) {
   }
   return best
 }
-import { GRID_H, GRID_W, WALK_CELLS } from './roads'
 
 const walk = new Set(WALK_CELLS)
 const N8 = [
@@ -124,19 +124,6 @@ function astar(start, goal) {
   return null
 }
 
-function simplify(cells) {
-  if (cells.length < 3) return cells
-  const out = [cells[0]]
-  for (let i = 1; i < cells.length - 1; i++) {
-    const [ax, ay] = out[out.length - 1]
-    const [bx, by] = cells[i]
-    const [cx, cy] = cells[i + 1]
-    if ((bx - ax) * (cy - by) !== (by - ay) * (cx - bx)) out.push(cells[i])
-  }
-  out.push(cells[cells.length - 1])
-  return out
-}
-
 export function buildRoute(fromPoint, destPoiId) {
   const dest = getPoi(destPoiId)
   if (!fromPoint || !dest) return null
@@ -144,16 +131,17 @@ export function buildRoute(fromPoint, destPoiId) {
   const start = snapToRoad(fromPoint)
   const end = snapToRoad(dest)
   const cells = astar(start.cell, end.cell)
-  if (!cells) return null
+  if (!cells || cells.length < 1) return null
 
-  const kept = simplify(cells)
-  const mid = kept.map(([x, y]) => cellToLatLng(x, y))
-  const points = [fromPoint, ...mid, dest]
+  // 只画贴在路上的点，避免从定位点斜穿色块
+  const points = cells.map(([x, y]) => cellToLatLng(x, y))
+  if (haversine(fromPoint, points[0]) < 50) points.unshift(fromPoint)
+  if (haversine(dest, points[points.length - 1]) < 50) points.push(dest)
 
   let distance = 0
   for (let i = 1; i < points.length; i++) distance += haversine(points[i - 1], points[i])
 
-  return { points, distance, dest, cells: kept }
+  return { points, distance, dest, cells }
 }
 
 export function nextInstruction(user, routePoints) {

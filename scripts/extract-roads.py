@@ -88,6 +88,61 @@ def drop_blobs(grid, max_area):
     return grid
 
 
+def neighbors8(grid, x, y):
+    h, w = len(grid), len(grid[0])
+    pts = []
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+            if dx == 0 and dy == 0:
+                continue
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < w and 0 <= ny < h:
+                pts.append(grid[ny][nx])
+            else:
+                pts.append(0)
+    # p2 top, clockwise
+    return [pts[1], pts[2], pts[4], pts[7], pts[6], pts[5], pts[3], pts[0]]
+
+
+def zhang_suen(grid):
+    h, w = len(grid), len(grid[0])
+    changed = True
+    while changed:
+        changed = False
+        for step in (0, 1):
+            mark = []
+            for y in range(1, h - 1):
+                for x in range(1, w - 1):
+                    if not grid[y][x]:
+                        continue
+                    n = neighbors8(grid, x, y)
+                    b = sum(1 for v in n if v)
+                    if b < 2 or b > 6:
+                        continue
+                    a = 0
+                    for i in range(8):
+                        if n[i] == 0 and n[(i + 1) % 8] == 1:
+                            a += 1
+                    if a != 1:
+                        continue
+                    if step == 0:
+                        if n[0] * n[2] * n[4] != 0:
+                            continue
+                        if n[2] * n[4] * n[6] != 0:
+                            continue
+                    else:
+                        if n[0] * n[2] * n[6] != 0:
+                            continue
+                        if n[0] * n[4] * n[6] != 0:
+                            continue
+                    mark.append((x, y))
+            if mark:
+                changed = True
+                for x, y in mark:
+                    grid[y][x] = 0
+    return grid
+
+
 def bridge(grid, maxd=10):
     h, w = len(grid), len(grid[0])
     changed = True
@@ -134,7 +189,7 @@ def main():
         for x in range(W):
             walk[y][x] = 1 if is_route(*px[x, y]) else 0
     walk = drop_blobs(walk, 800)
-    walk = dilate(walk, 3)
+    walk = dilate(walk, 1)
 
     GW, GH = W // 2, H // 2
     grid = [[0] * GW for _ in range(GH)]
@@ -147,7 +202,9 @@ def main():
                 or walk[min(2 * y + 1, H - 1)][min(2 * x + 1, W - 1)]
             ):
                 grid[y][x] = 1
-    grid = bridge(grid, 16)
+    grid = bridge(grid, 12)
+    grid = zhang_suen(grid)
+    grid = bridge(grid, 10)
     comps = components(grid)
     for cells_c in comps:
         if len(cells_c) < 40:
