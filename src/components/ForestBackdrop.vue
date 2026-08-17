@@ -23,8 +23,9 @@ const leaves = Array.from({ length: 11 }, (_, i) => {
 
 <template>
   <div class="forest" aria-hidden="true">
-    <div class="wash wash-a" />
-    <div class="wash wash-b" />
+    <div class="wash a" />
+    <div class="wash b" />
+    <div class="wash c" />
     <span
       v-for="(leaf, i) in leaves"
       :key="i"
@@ -53,32 +54,30 @@ const leaves = Array.from({ length: 11 }, (_, i) => {
 }
 .wash {
   position: absolute;
-  inset: 0;
+  inset: -45%;
 }
-.wash-a {
-  background: repeating-linear-gradient(
-    180deg,
-    #e6f3dc 0px,
-    #c8e2b6 100px,
-    #9ecb86 200px,
-    #d4ebc4 300px,
-    #7eb56e 400px,
-    #cfe8c0 500px,
-    #e6f3dc 600px
-  );
-  animation: scroll-a 32s linear infinite;
+.wash.a {
+  background:
+    radial-gradient(ellipse 90% 75% at 16% 20%, #c5e0b0 0%, transparent 58%),
+    radial-gradient(ellipse 80% 70% at 82% 16%, #8fbf76 0%, transparent 60%),
+    radial-gradient(ellipse 95% 80% at 48% 78%, #dcecc8 0%, transparent 62%),
+    radial-gradient(ellipse 72% 64% at 6% 82%, #a8cb92 0%, transparent 58%);
+  animation: drift-a 26s ease-in-out infinite alternate;
 }
-.wash-b {
-  opacity: 0.4;
-  background: repeating-linear-gradient(
-    6deg,
-    transparent 0px,
-    rgba(232, 244, 220, 0.65) 90px,
-    rgba(110, 160, 96, 0.28) 180px,
-    rgba(200, 226, 176, 0.5) 270px,
-    transparent 360px
-  );
-  animation: scroll-b 40s linear infinite;
+.wash.b {
+  background:
+    radial-gradient(ellipse 88% 76% at 86% 64%, #7eb56e 0%, transparent 58%),
+    radial-gradient(ellipse 82% 70% at 26% 50%, #e3f2d4 0%, transparent 56%),
+    radial-gradient(ellipse 74% 66% at 64% 6%, #b7d6a0 0%, transparent 60%),
+    radial-gradient(ellipse 92% 78% at 10% 34%, #6fa86a 0%, transparent 62%);
+  animation: drift-b 32s ease-in-out infinite alternate;
+}
+.wash.c {
+  background:
+    radial-gradient(ellipse 96% 82% at 54% 42%, #cfe8c0 0%, transparent 60%),
+    radial-gradient(ellipse 70% 62% at 92% 90%, #d8edc6 0%, transparent 56%),
+    radial-gradient(ellipse 78% 68% at 4% 6%, #9ecb86 0%, transparent 58%);
+  animation: drift-c 22s ease-in-out infinite alternate;
 }
 .leaf {
   position: absolute;
@@ -86,14 +85,28 @@ const leaves = Array.from({ length: 11 }, (_, i) => {
   transform-origin: 60% 40%;
 }
 
-@keyframes scroll-a {
+@keyframes drift-a {
+  from {
+    transform: translate3d(-4%, -3%, 0);
+  }
   to {
-    background-position: 0 600px;
+    transform: translate3d(6%, 5%, 0);
   }
 }
-@keyframes scroll-b {
+@keyframes drift-b {
+  from {
+    transform: translate3d(5%, 4%, 0);
+  }
   to {
-    background-position: 40px 360px;
+    transform: translate3d(-6%, -3%, 0);
+  }
+}
+@keyframes drift-c {
+  from {
+    transform: translate3d(-3%, 5%, 0);
+  }
+  to {
+    transform: translate3d(4%, -5%, 0);
   }
 }
 </style>
