@@ -9,6 +9,7 @@ import { clipForPoi } from '../utils/voice'
 
 const route = useRoute()
 const router = useRouter()
+const base = import.meta.env.BASE_URL
 
 const poi = computed(() => {
   const raw = getPoi(route.params.id)
@@ -33,6 +34,12 @@ const meta = computed(() => (poi.value ? TYPE_META[poi.value.type] : null))
           <h2>{{ poi.name }}</h2>
         </div>
       </article>
+      <img
+        v-if="poi.photo"
+        class="photo"
+        :src="`${base}${poi.photo}`"
+        :alt="poi.name"
+      />
 
       <article class="card facts">
         <p v-if="poi.distance != null"><b>直线</b>{{ formatDistance(poi.distance) }}</p>
@@ -128,5 +135,13 @@ h3,
   margin: 0;
   line-height: 1.6;
   font-weight: 500;
+}
+.photo {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  object-position: center 62%;
+  border-radius: var(--radius);
+  display: block;
 }
 </style>

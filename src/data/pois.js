@@ -1,8 +1,10 @@
 import { haversine, walkMinutes, xyToLatLng } from '../utils/geo'
+import { COPY, facilityIntro, facilityVoice } from './copy'
 
 const MAP_NOTE = '名称、位置按 2021 年总体规划图红点标注对齐。图上有些是规划项目，现场不一定已建成。'
 
 function spot(id, name, type, x, y, extra = {}) {
+  const copy = COPY[id] || {}
   return {
     id,
     name,
@@ -10,8 +12,9 @@ function spot(id, name, type, x, y, extra = {}) {
     x,
     y,
     recommendMin: extra.recommendMin ?? (type === 'attraction' ? 15 : 5),
-    intro: extra.intro || `${name}。${MAP_NOTE}`,
-    voice: extra.voice || `这里是${name}。请看现场是否开放。`,
+    intro: extra.intro || copy.intro || facilityIntro(name, type),
+    voice: extra.voice || copy.voice || facilityVoice(name, type),
+    photo: extra.photo || copy.photo,
     hours: extra.hours,
     tags: extra.tags,
     extras: extra.extras,
@@ -42,10 +45,7 @@ const raw = [
   spot('yueye', '山地自行车越野径', 'attraction', 0.4253, 0.2938, { recommendMin: 25 }),
   spot('yueduba', '悦读吧', 'attraction', 0.418, 0.336, { recommendMin: 10 }),
   spot('junziyuan', '君子苑', 'attraction', 0.448, 0.322, { recommendMin: 15 }),
-  spot('zuomei', '做梅湖', 'attraction', 0.5637, 0.3088, {
-    recommendMin: 15,
-    intro: `做梅湖、竹韵湖、艳菊湖。${MAP_NOTE}`,
-  }),
+  spot('zuomei', '做梅湖', 'attraction', 0.5637, 0.3088, { recommendMin: 15 }),
   spot('yequ', '野趣寻踪径', 'attraction', 0.4652, 0.3664, { recommendMin: 20 }),
 
   // 西区
