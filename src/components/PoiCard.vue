@@ -24,6 +24,7 @@ const distText = computed(() => {
       <span class="text">
         <strong>{{ poi.name }}</strong>
         <em>{{ distText }}</em>
+        <small v-if="poi.intro" class="intro">{{ poi.intro }}</small>
       </span>
     </button>
     <button class="go" @click="emit('go', poi)">去这里</button>
@@ -34,7 +35,7 @@ const distText = computed(() => {
 .box {
   padding: 12px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
 }
 .main {
@@ -71,9 +72,21 @@ const distText = computed(() => {
   font-size: var(--fs-xs);
   font-weight: 700;
 }
+.intro {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  margin-top: 4px;
+  color: #3d4a3c;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1.45;
+}
 .go {
   flex: none;
   min-height: 44px;
+  margin-top: 2px;
   padding: 0 16px;
   border-radius: 999px;
   background: var(--primary);

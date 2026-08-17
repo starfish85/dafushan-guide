@@ -54,6 +54,7 @@ function meta(poi) {
           <strong>{{ poi.name }}</strong>
           <em v-if="poi.distance != null">直线 {{ formatDistance(poi.distance) }} · 约{{ poi.walkMin }}分钟</em>
           <em v-else>定位后显示距离</em>
+          <small v-if="poi.intro" class="intro">{{ poi.intro }}</small>
         </span>
         <span class="go">去</span>
       </button>
@@ -126,6 +127,16 @@ function meta(poi) {
   color: var(--muted);
   font-size: var(--fs-xs);
   font-weight: 700;
+}
+.intro {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: #3d4a3c;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1.4;
 }
 .go {
   width: 40px;
