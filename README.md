@@ -30,7 +30,7 @@ npm run dev
 
 仓库：https://github.com/starfish85/dafushan-guide
 
-这是 GitHub Pages 的 https 地址，电脑不用开着也能扫码打开。推送到 `main` 后会自动重新发布。
+这是 GitHub Pages 的 https 地址，电脑不用开着也能扫码打开。更新网页后在本机运行 `./scripts/publish-pages.sh` 会重新发布。
 
 ## 现场演示（真定位必须用 https）
 
