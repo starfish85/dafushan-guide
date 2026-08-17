@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import ParkMap from '../components/ParkMap.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { getPoi } from '../data/pois'
-import { buildRoute, nextInstruction } from '../data/paths'
+import { buildRoute, nearestGate, nextInstruction } from '../data/paths'
 import { app, userPoint } from '../stores/app'
 import { externalMapUrl, formatDistance, haversine, isInsidePark, walkMinutes } from '../utils/geo'
 import { clipForGuide, speak, stopVoice } from '../utils/voice'
@@ -21,28 +21,32 @@ const inPark = computed(() => isInsidePark(here.value))
 const straight = computed(() =>
   here.value && dest.value ? haversine(here.value, dest.value) : null,
 )
+const entry = computed(() => nearestGate(here.value || dest.value))
 const plan = computed(() => {
-  if (!here.value || !dest.value || !inPark.value) return null
-  return buildRoute(here.value, dest.value.id)
+  if (!dest.value) return null
+  const from = inPark.value && here.value ? here.value : entry.value
+  if (!from) return null
+  return buildRoute(from, dest.value.id)
 })
 const guide = computed(() => nextInstruction(here.value, plan.value?.points || []))
 
 const remainText = computed(() => {
-  if (!here.value) return '还没有您的位置'
-  if (!inPark.value && straight.value != null) {
-    return `直线${formatDistance(straight.value)}。您不在园内，园内步道导航不能当高德用`
+  if (!here.value) return '还没有您的位置。也可先看图上沿路的蓝线'
+  if (!inPark.value && entry.value) {
+    const away = straight.value != null ? `您距公园约${formatDistance(straight.value)}。` : ''
+    return `${away}蓝线是从${entry.value.name}沿图上的路走到目的地，不是直线`
   }
-  if (!plan.value) return '正在规划'
+  if (!plan.value) return '正在按园路规划'
   if (guide.value.arrived) return '已经到达'
-  return `园内剩余约${formatDistance(guide.value.remain)}`
+  return `沿园路约${formatDistance(guide.value.remain)}`
 })
 const etaText = computed(() => {
   if (!plan.value || guide.value.arrived) return ''
-  return `预计再走约${walkMinutes(guide.value.remain)}分钟`
+  return `园内再走约${walkMinutes(guide.value.remain)}分钟`
 })
 const cmdText = computed(() => {
-  if (!here.value) return '请先开启定位'
-  if (!inPark.value) return '您现在不在园内'
+  if (!here.value) return '开启定位后，按园路导航'
+  if (!inPark.value && entry.value) return `请先到${entry.value.name}入园，再沿蓝线走`
   if (guide.value.arrived) return '已经到达目的地'
   return guide.value.text
 })
@@ -93,7 +97,7 @@ function leave() {
         v-if="dest"
         :pois="[dest]"
         :user="here"
-        :route="plan?.points || (here && dest ? [here, dest] : [])"
+        :route="plan?.points || []"
         :selected-id="dest.id"
       />
     </div>

@@ -1,5 +1,23 @@
 import { bearing, haversine, latLngToXy, turnLabel, xyToLatLng } from '../utils/geo'
 import { getPoi } from './pois'
+
+const GATE_IDS = ['gate-north', 'gate-east', 'gate-south', 'gate-southwest']
+
+export function nearestGate(point) {
+  let best = getPoi('gate-south')
+  let bestD = Infinity
+  for (const id of GATE_IDS) {
+    const gate = getPoi(id)
+    if (!gate) continue
+    if (!point) return best
+    const d = haversine(point, gate)
+    if (d < bestD) {
+      bestD = d
+      best = gate
+    }
+  }
+  return best
+}
 import { GRID_H, GRID_W, WALK_CELLS } from './roads'
 
 const walk = new Set(WALK_CELLS)
