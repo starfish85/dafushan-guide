@@ -1,37 +1,21 @@
 <script setup>
-const VARIANTS = ['swirl', 'gust', 'cross', 'loft', 'swoop', 'weave']
+const VARIANTS = ['drift', 'stall', 'blow-r', 'blow-l', 'tumble', 'flutter']
 const COLORS = ['#1a6b34', '#2f7a3d', '#3d8b4a', '#6aa56a', '#4a8f52']
 
 function rand(min, max) {
   return min + Math.random() * (max - min)
 }
 
-function pickStart(kind) {
-  if (kind === 'gust') return { x: rand(-8, 12), y: rand(12, 58) }
-  if (kind === 'cross') return { x: rand(72, 96), y: rand(14, 60) }
-  if (kind === 'loft') return { x: rand(12, 78), y: rand(48, 78) }
-  if (kind === 'swoop') return { x: rand(8, 84), y: rand(0, 18) }
-  if (kind === 'weave') return { x: rand(18, 74), y: rand(10, 42) }
-  return { x: rand(14, 80), y: rand(8, 46) }
-}
-
-function pickDuration(kind) {
-  if (kind === 'swirl' || kind === 'weave') return rand(9, 14)
-  if (kind === 'gust' || kind === 'cross') return rand(11, 17)
-  return rand(10, 16)
-}
-
-const leaves = Array.from({ length: 12 }, (_, i) => {
+const leaves = Array.from({ length: 11 }, (_, i) => {
   const kind = VARIANTS[i % VARIANTS.length]
-  const { x, y } = pickStart(kind)
   return {
     kind,
-    x: `${x.toFixed(1)}%`,
-    y: `${y.toFixed(1)}%`,
-    s: rand(13, 24),
-    delay: `${(-rand(0, 12)).toFixed(1)}s`,
-    duration: `${pickDuration(kind).toFixed(1)}s`,
-    opacity: rand(0.28, 0.48),
+    x: `${rand(4, 90).toFixed(1)}%`,
+    y: `${rand(-14, -5).toFixed(1)}%`,
+    s: rand(13, 23),
+    delay: `${(-rand(0, 18)).toFixed(1)}s`,
+    duration: `${rand(15, 23).toFixed(1)}s`,
+    opacity: rand(0.26, 0.44),
     color: COLORS[i % COLORS.length],
   }
 })
@@ -51,7 +35,7 @@ const leaves = Array.from({ length: 12 }, (_, i) => {
         height: leaf.s * 1.35 + 'px',
         opacity: leaf.opacity,
         background: leaf.color,
-        animation: `daofu-${leaf.kind} ${leaf.duration} linear ${leaf.delay} infinite`,
+        animation: `daofu-${leaf.kind} ${leaf.duration} ease-in ${leaf.delay} infinite`,
       }"
     />
   </div>
@@ -79,113 +63,131 @@ const leaves = Array.from({ length: 12 }, (_, i) => {
 }
 </style>
 
-<!-- 关键帧不进 scoped，避免变量/哈希导致动画失效 -->
 <style>
-@keyframes daofu-swirl {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-  }
-  25% {
-    transform: translate3d(92px, 56px, 0) rotate(85deg);
-  }
-  50% {
-    transform: translate3d(-48px, 18px, 0) rotate(175deg);
-  }
-  75% {
-    transform: translate3d(76px, -46px, 0) rotate(260deg);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) rotate(360deg);
-  }
-}
-
-@keyframes daofu-gust {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(-18deg);
-  }
-  28% {
-    transform: translate3d(28vw, -9vh, 0) rotate(42deg);
-  }
-  58% {
-    transform: translate3d(58vw, 11vh, 0) rotate(-28deg);
-  }
-  100% {
-    transform: translate3d(108vw, -5vh, 0) rotate(14deg);
-  }
-}
-
-@keyframes daofu-cross {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(16deg);
-  }
-  32% {
-    transform: translate3d(-30vw, 9vh, 0) rotate(-48deg);
-  }
-  66% {
-    transform: translate3d(-62vw, -11vh, 0) rotate(32deg);
-  }
-  100% {
-    transform: translate3d(-108vw, 5vh, 0) rotate(-12deg);
-  }
-}
-
-@keyframes daofu-loft {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(10deg);
-  }
-  28% {
-    transform: translate3d(54px, -20vh, 0) rotate(-38deg);
-  }
-  54% {
-    transform: translate3d(-36px, -34vh, 0) rotate(58deg);
-  }
-  78% {
-    transform: translate3d(86px, -18vh, 0) rotate(-16deg);
-  }
-  100% {
-    transform: translate3d(18px, -6vh, 0) rotate(12deg);
-  }
-}
-
-@keyframes daofu-swoop {
+/* 都会落到屏幕外。中途可被风带偏、短暂托一下，但不在空中打转。 */
+@keyframes daofu-drift {
   0% {
     transform: translate3d(0, 0, 0) rotate(0deg);
   }
   18% {
-    transform: translate3d(72px, 16vh, 0) rotate(62deg);
+    transform: translate3d(72px, 16vh, 0) rotate(55deg);
   }
-  38% {
-    transform: translate3d(-56px, 8vh, 0) rotate(18deg);
+  36% {
+    transform: translate3d(-46px, 36vh, 0) rotate(118deg);
   }
-  58% {
-    transform: translate3d(64px, 36vh, 0) rotate(138deg);
+  55% {
+    transform: translate3d(84px, 58vh, 0) rotate(188deg);
   }
-  78% {
-    transform: translate3d(-40px, 22vh, 0) rotate(88deg);
+  76% {
+    transform: translate3d(-34px, 86vh, 0) rotate(258deg);
   }
   100% {
-    transform: translate3d(48px, 58vh, 0) rotate(210deg);
+    transform: translate3d(38px, 122vh, 0) rotate(340deg);
   }
 }
 
-@keyframes daofu-weave {
+@keyframes daofu-stall {
   0% {
-    transform: translate3d(0, 0, 0) rotate(-10deg);
+    transform: translate3d(0, 0, 0) rotate(-16deg);
   }
-  20% {
-    transform: translate3d(110px, 8vh, 0) rotate(36deg);
+  22% {
+    transform: translate3d(-64px, 26vh, 0) rotate(42deg);
   }
   40% {
-    transform: translate3d(-88px, -8vh, 0) rotate(-42deg);
+    transform: translate3d(28px, 40vh, 0) rotate(18deg);
   }
-  60% {
-    transform: translate3d(96px, 12vh, 0) rotate(52deg);
+  52% {
+    transform: translate3d(96px, 35vh, 0) rotate(-28deg);
   }
-  80% {
-    transform: translate3d(-64px, -5vh, 0) rotate(-22deg);
+  70% {
+    transform: translate3d(-24px, 68vh, 0) rotate(96deg);
   }
   100% {
-    transform: translate3d(0, 3vh, 0) rotate(8deg);
+    transform: translate3d(46px, 124vh, 0) rotate(210deg);
+  }
+}
+
+@keyframes daofu-blow-r {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-20deg);
+  }
+  24% {
+    transform: translate3d(20vw, 20vh, 0) rotate(38deg);
+  }
+  48% {
+    transform: translate3d(8vw, 48vh, 0) rotate(86deg);
+  }
+  72% {
+    transform: translate3d(30vw, 78vh, 0) rotate(148deg);
+  }
+  100% {
+    transform: translate3d(16vw, 124vh, 0) rotate(220deg);
+  }
+}
+
+@keyframes daofu-blow-l {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(18deg);
+  }
+  24% {
+    transform: translate3d(-18vw, 22vh, 0) rotate(-44deg);
+  }
+  48% {
+    transform: translate3d(-6vw, 50vh, 0) rotate(16deg);
+  }
+  72% {
+    transform: translate3d(-26vw, 80vh, 0) rotate(-96deg);
+  }
+  100% {
+    transform: translate3d(-12vw, 124vh, 0) rotate(-168deg);
+  }
+}
+
+@keyframes daofu-tumble {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  16% {
+    transform: translate3d(42px, 14vh, 0) rotate(90deg);
+  }
+  32% {
+    transform: translate3d(-74px, 32vh, 0) rotate(180deg);
+  }
+  48% {
+    transform: translate3d(58px, 50vh, 0) rotate(270deg);
+  }
+  66% {
+    transform: translate3d(-48px, 74vh, 0) rotate(360deg);
+  }
+  84% {
+    transform: translate3d(62px, 98vh, 0) rotate(450deg);
+  }
+  100% {
+    transform: translate3d(-22px, 126vh, 0) rotate(540deg);
+  }
+}
+
+@keyframes daofu-flutter {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(8deg);
+  }
+  16% {
+    transform: translate3d(48px, 8vh, 0) rotate(-22deg);
+  }
+  30% {
+    transform: translate3d(-36px, 16vh, 0) rotate(28deg);
+  }
+  48% {
+    transform: translate3d(78px, 40vh, 0) rotate(108deg);
+  }
+  68% {
+    transform: translate3d(-52px, 70vh, 0) rotate(172deg);
+  }
+  86% {
+    transform: translate3d(28px, 98vh, 0) rotate(236deg);
+  }
+  100% {
+    transform: translate3d(-16px, 122vh, 0) rotate(290deg);
   }
 }
 </style>
