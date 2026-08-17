@@ -52,6 +52,7 @@ const meta = computed(() => (poi.value ? TYPE_META[poi.value.type] : null))
           v-if="poi"
           :clip="clipForPoi(poi.id)"
           :text="poi.voice || poi.intro"
+          label="播放语音介绍"
         />
       </article>
 

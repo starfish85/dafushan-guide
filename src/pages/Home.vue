@@ -36,7 +36,8 @@ function search() {
 }
 
 function goPoi(poi) {
-  router.push({ name: 'navigate', params: { id: poi.id } })
+  if (poi.type === 'attraction') router.push({ name: 'detail', params: { id: poi.id } })
+  else router.push({ name: 'navigate', params: { id: poi.id } })
 }
 
 function typeMeta(poi) {

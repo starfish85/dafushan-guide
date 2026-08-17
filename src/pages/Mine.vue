@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue'
 import { FONT_OPTIONS, app, persistSettings, setFontSize } from '../stores/app'
-import VoicePlayer from '../components/VoicePlayer.vue'
 import { PARK_INFO, POIS } from '../data/pois'
 import { useGeolocation } from '../composables/useGeolocation'
 
@@ -70,7 +69,6 @@ function onMockChange() {
           step="0.05"
           @change="persistSettings()"
         />
-        <VoicePlayer clip="test" text="这里是大夫山森林公园。语音讲解已打开。" />
       </article>
 
       <article class="card box">
