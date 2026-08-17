@@ -17,10 +17,7 @@ useProximityGuide()
 onMounted(() => {
   applyFontToDocument()
   if (app.onboarded) startWatch()
-  const unlock = () => unlockVoice()
-  window.addEventListener('pointerdown', unlock, { once: true })
-  window.addEventListener('touchstart', unlock, { once: true })
-  window.addEventListener('click', unlock, { once: true })
+  unlockVoice()
 })
 </script>
 

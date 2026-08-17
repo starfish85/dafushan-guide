@@ -1,14 +1,14 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { TYPE_META, getPoi, withDistance } from '../data/pois'
 import { userPoint } from '../stores/app'
 import { formatDistance } from '../utils/geo'
-import { clipForPoi, isSpeaking, speak, stopVoice } from '../utils/voice'
+import VoicePlayer from '../components/VoicePlayer.vue'
+import { clipForPoi } from '../utils/voice'
 
 const route = useRoute()
 const router = useRouter()
-const playing = ref(false)
 
 const poi = computed(() => {
   const raw = getPoi(route.params.id)
@@ -16,24 +16,6 @@ const poi = computed(() => {
   return withDistance([raw], userPoint())[0]
 })
 const meta = computed(() => (poi.value ? TYPE_META[poi.value.type] : null))
-
-function toggleVoice() {
-  if (!poi.value) return
-  const text = poi.value.voice || poi.value.intro
-  if (isSpeaking(text)) {
-    stopVoice()
-    playing.value = false
-    return
-  }
-  const ok = speak(text, {
-    force: true,
-    clip: clipForPoi(poi.value.id),
-    onEnd: () => {
-      playing.value = false
-    },
-  })
-  playing.value = ok
-}
 </script>
 
 <template>
@@ -66,10 +48,11 @@ function toggleVoice() {
 
       <article class="card voice">
         <p class="voice-title">语音介绍</p>
-        <button class="play" type="button" @click="toggleVoice">
-          <span class="orb">{{ playing ? '■' : '▶' }}</span>
-          <span class="play-text">{{ playing ? '正在讲解，点一下停止' : '点这里听讲解' }}</span>
-        </button>
+        <VoicePlayer
+          v-if="poi"
+          :clip="clipForPoi(poi.id)"
+          :text="poi.voice || poi.intro"
+        />
       </article>
 
       <button class="primary-btn" @click="router.push({ name: 'navigate', params: { id: poi.id } })">
@@ -144,28 +127,5 @@ h3,
   margin: 0;
   line-height: 1.6;
   font-weight: 500;
-}
-.play {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: var(--tap);
-  width: 100%;
-}
-.orb {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #e4f4e2;
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex: none;
-}
-.play-text {
-  font-weight: 800;
-  color: var(--primary);
 }
 </style>

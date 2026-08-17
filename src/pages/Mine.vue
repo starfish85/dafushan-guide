@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { FONT_OPTIONS, app, persistSettings, setFontSize } from '../stores/app'
-import { speak } from '../utils/voice'
+import VoicePlayer from '../components/VoicePlayer.vue'
 import { PARK_INFO, POIS } from '../data/pois'
 import { useGeolocation } from '../composables/useGeolocation'
 
@@ -70,13 +70,7 @@ function onMockChange() {
           step="0.05"
           @change="persistSettings()"
         />
-        <button
-          class="primary-btn extra"
-          type="button"
-          @click="speak('这里是大夫山森林公园。语音讲解已打开。', { force: true, clip: 'test' })"
-        >
-          试听语音
-        </button>
+        <VoicePlayer clip="test" text="这里是大夫山森林公园。语音讲解已打开。" />
       </article>
 
       <article class="card box">

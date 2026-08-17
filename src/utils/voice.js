@@ -1,28 +1,16 @@
-import { app } from '../stores/app'
+import { app, showToast } from '../stores/app'
 
 const base = import.meta.env.BASE_URL || './'
 
-let player = null
-let unlocked = false
-let speakingText = ''
+let bound = null
+let speakingKey = ''
 
-function srcOf(clip) {
-  return `${base}audio/${clip}.m4a`
-}
-
-function getPlayer() {
-  if (player) return player
-  player = new Audio()
-  player.preload = 'auto'
-  player.setAttribute('playsinline', 'true')
-  player.setAttribute('webkit-playsinline', 'true')
-  player.setAttribute('x5-playsinline', 'true')
-  player.controls = false
-  return player
+export function audioUrl(clip) {
+  return `${base}audio/${clip}.wav`
 }
 
 export function clipForPoi(id) {
-  return id ? `poi/${id}` : ''
+  return id ? `poi/${id}` : 'test'
 }
 
 export function clipForGuide(guide) {
@@ -36,35 +24,53 @@ export function clipForGuide(guide) {
   return 'nav-forward'
 }
 
-export function unlockVoice() {
-  const a = getPlayer()
-  if (unlocked && a.src) return
-  try {
-    a.muted = true
-    a.src = srcOf('silent')
-    const play = a.play()
-    if (play && play.then) {
-      play
-        .then(() => {
-          a.pause()
-          a.muted = false
-          unlocked = true
-        })
-        .catch(() => {
-          a.muted = false
-        })
-    } else {
-      a.muted = false
-      unlocked = true
-    }
-  } catch {
-    a.muted = false
+export function bindPlayer(el) {
+  if (el) bound = el
+}
+
+export function unbindPlayer(el) {
+  if (bound === el) bound = null
+}
+
+function isWeixin() {
+  return typeof navigator !== 'undefined' && /MicroMessenger/i.test(navigator.userAgent)
+}
+
+function weixinReady(fn) {
+  if (window.WeixinJSBridge) {
+    fn()
+    return
   }
+  if (isWeixin()) {
+    document.addEventListener('WeixinJSBridgeReady', fn, false)
+    return
+  }
+  fn()
+}
+
+function withWeixinAudio(fn) {
+  weixinReady(() => {
+    if (window.WeixinJSBridge && typeof window.WeixinJSBridge.invoke === 'function') {
+      window.WeixinJSBridge.invoke('getNetworkType', {}, () => fn())
+      return
+    }
+    fn()
+  })
+}
+
+export function unlockVoice() {
+  withWeixinAudio(() => {})
+}
+
+function finish(key, onEnd) {
+  if (speakingKey === key) speakingKey = ''
+  onEnd?.()
 }
 
 export function stopVoice() {
-  speakingText = ''
-  const a = getPlayer()
+  speakingKey = ''
+  const a = playerEl()
+  if (!a) return
   a.onended = null
   a.onerror = null
   try {
@@ -76,53 +82,63 @@ export function stopVoice() {
 }
 
 export function isSpeaking(text) {
-  const a = getPlayer()
-  const on = !a.paused && !a.ended && a.currentTime > 0
-  if (text) return speakingText === text && on
+  const a = bound
+  const on = !!(a && !a.paused && !a.ended && a.currentTime > 0)
+  if (text) return speakingKey === text && on
   return on
+}
+
+function playerEl() {
+  if (bound) return bound
+  let el = document.getElementById('guide-audio')
+  if (!el) {
+    el = document.createElement('audio')
+    el.id = 'guide-audio'
+    el.setAttribute('playsinline', 'true')
+    el.setAttribute('webkit-playsinline', 'true')
+    el.preload = 'auto'
+    document.body.appendChild(el)
+  }
+  return el
 }
 
 export function speak(text, { force = false, onEnd, clip } = {}) {
   if (!force && !app.voiceEnabled) return false
   const file = clip || 'test'
-  const a = getPlayer()
+  const key = text || file
+  const a = playerEl()
 
-  speakingText = text || file
-  a.onended = null
-  a.onerror = null
-  try {
-    a.pause()
-  } catch {
-    /* ignore */
-  }
-
+  speakingKey = key
   a.muted = false
   a.volume = Math.min(1, Math.max(0.2, Number(app.volume) || 0.9))
-  a.src = srcOf(file)
+  const url = audioUrl(file)
+  if (!a.src.endsWith(`${file}.wav`)) a.src = url
 
-  const done = () => {
-    if (speakingText === (text || file)) speakingText = ''
-    onEnd?.()
+  a.onended = () => finish(key, onEnd)
+  a.onerror = () => {
+    showToast('语音加载失败，请检查网络后重试')
+    finish(key, onEnd)
   }
-  a.onended = done
-  a.onerror = done
 
-  const play = a.play()
-  if (play && play.catch) {
-    play.catch(() => {
-      unlockVoice()
-      a.muted = false
-      a.play().catch(done)
-    })
+  const start = () => {
+    const play = a.play()
+    if (play && play.catch) {
+      play.catch((err) => {
+        const name = err && err.name
+        if (name === 'NotAllowedError') {
+          showToast('请点下面播放条上的三角形')
+        } else {
+          showToast('播放失败，请点下面的播放条')
+        }
+        finish(key, onEnd)
+      })
+    }
   }
-  unlocked = true
+
+  withWeixinAudio(start)
   return true
 }
 
 if (typeof document !== 'undefined') {
-  const boot = () => unlockVoice()
-  document.addEventListener('WeixinJSBridgeReady', boot, false)
-  document.addEventListener('DOMContentLoaded', () => {
-    if (window.WeixinJSBridge) boot()
-  })
+  weixinReady(() => {})
 }
