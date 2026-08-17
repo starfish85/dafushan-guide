@@ -1,5 +1,5 @@
 <script setup>
-const KINDS = ['eddy', 'hover', 'cross-r', 'cross-l', 'fall-lift', 'lift']
+const VARIANTS = ['swirl', 'gust', 'cross', 'loft', 'swoop', 'weave']
 const COLORS = ['#1a6b34', '#2f7a3d', '#3d8b4a', '#6aa56a', '#4a8f52']
 
 function rand(min, max) {
@@ -7,38 +7,32 @@ function rand(min, max) {
 }
 
 function pickStart(kind) {
-  if (kind === 'cross-r') return { x: rand(-10, -3), y: rand(8, 72) }
-  if (kind === 'cross-l') return { x: rand(102, 110), y: rand(8, 72) }
-  if (kind === 'fall-lift') return { x: rand(4, 92), y: rand(-16, -6) }
-  if (kind === 'lift') return { x: rand(6, 82), y: rand(62, 92) }
-  if (kind === 'hover') return { x: rand(12, 84), y: rand(4, 32) }
-  return { x: rand(10, 86), y: rand(10, 52) }
+  if (kind === 'gust') return { x: rand(-8, 12), y: rand(12, 58) }
+  if (kind === 'cross') return { x: rand(72, 96), y: rand(14, 60) }
+  if (kind === 'loft') return { x: rand(12, 78), y: rand(48, 78) }
+  if (kind === 'swoop') return { x: rand(8, 84), y: rand(0, 18) }
+  if (kind === 'weave') return { x: rand(18, 74), y: rand(10, 42) }
+  return { x: rand(14, 80), y: rand(8, 46) }
 }
 
-function pickTiming(kind) {
-  if (kind === 'eddy') return rand(16, 28)
-  if (kind === 'hover') return rand(14, 24)
-  if (kind === 'cross-r' || kind === 'cross-l') return rand(22, 38)
-  if (kind === 'lift') return rand(18, 30)
-  return rand(24, 40)
+function pickDuration(kind) {
+  if (kind === 'swirl' || kind === 'weave') return rand(9, 14)
+  if (kind === 'gust' || kind === 'cross') return rand(11, 17)
+  return rand(10, 16)
 }
 
-const leaves = Array.from({ length: 14 }, (_, i) => {
-  const kind = KINDS[i % KINDS.length]
+const leaves = Array.from({ length: 12 }, (_, i) => {
+  const kind = VARIANTS[i % VARIANTS.length]
   const { x, y } = pickStart(kind)
   return {
     kind,
     x: `${x.toFixed(1)}%`,
     y: `${y.toFixed(1)}%`,
-    s: rand(11, 22),
-    d: `${(-rand(0, 22)).toFixed(1)}s`,
-    t: pickTiming(kind),
-    o: rand(0.2, 0.38),
-    c: COLORS[i % COLORS.length],
-    dx: `${rand(36, 110).toFixed(0)}px`,
-    dy: `${rand(18, 56).toFixed(0)}px`,
-    spin: `${rand(160, 420).toFixed(0)}deg`,
-    flip: Math.random() > 0.5 ? -1 : 1,
+    s: rand(13, 24),
+    delay: `${(-rand(0, 12)).toFixed(1)}s`,
+    duration: `${pickDuration(kind).toFixed(1)}s`,
+    opacity: rand(0.28, 0.48),
+    color: COLORS[i % COLORS.length],
   }
 })
 </script>
@@ -50,20 +44,14 @@ const leaves = Array.from({ length: 14 }, (_, i) => {
       v-for="(leaf, i) in leaves"
       :key="i"
       class="leaf"
-      :class="leaf.kind"
       :style="{
         left: leaf.x,
         top: leaf.y,
         width: leaf.s + 'px',
         height: leaf.s * 1.35 + 'px',
-        opacity: leaf.o,
-        background: leaf.c,
-        animationDuration: leaf.t + 's',
-        animationDelay: leaf.d,
-        '--dx': leaf.dx,
-        '--dy': leaf.dy,
-        '--spin': leaf.spin,
-        '--flip': leaf.flip,
+        opacity: leaf.opacity,
+        background: leaf.color,
+        animation: `daofu-${leaf.kind} ${leaf.duration} linear ${leaf.delay} infinite`,
       }"
     />
   </div>
@@ -88,151 +76,116 @@ const leaves = Array.from({ length: 14 }, (_, i) => {
   position: absolute;
   border-radius: 2px 70% 2px 70%;
   transform-origin: 60% 40%;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  will-change: transform;
 }
-.leaf.eddy {
-  animation-name: eddy;
-}
-.leaf.hover {
-  animation-name: hover;
-}
-.leaf.cross-r {
-  animation-name: cross-r;
-}
-.leaf.cross-l {
-  animation-name: cross-l;
-}
-.leaf.fall-lift {
-  animation-name: fall-lift;
-}
-.leaf.lift {
-  animation-name: lift;
-}
+</style>
 
-/* 原地回旋，有升有降，不往下冲 */
-@keyframes eddy {
-  0%,
-  100% {
+<!-- 关键帧不进 scoped，避免变量/哈希导致动画失效 -->
+<style>
+@keyframes daofu-swirl {
+  0% {
     transform: translate3d(0, 0, 0) rotate(0deg);
   }
-  18% {
-    transform: translate3d(var(--dx), calc(var(--dy) * -0.4)) rotate(calc(var(--spin) * 0.22));
+  25% {
+    transform: translate3d(92px, 56px, 0) rotate(85deg);
   }
-  38% {
-    transform: translate3d(calc(var(--dx) * -0.55), var(--dy)) rotate(calc(var(--spin) * 0.48));
+  50% {
+    transform: translate3d(-48px, 18px, 0) rotate(175deg);
   }
-  58% {
-    transform: translate3d(calc(var(--dx) * 0.35), calc(var(--dy) * -0.7)) rotate(calc(var(--spin) * 0.7));
+  75% {
+    transform: translate3d(76px, -46px, 0) rotate(260deg);
   }
-  78% {
-    transform: translate3d(calc(var(--dx) * -0.75), calc(var(--dy) * 0.25)) rotate(calc(var(--spin) * 0.88));
-  }
-}
-
-/* 顶部附近被风托住，左右飘 */
-@keyframes hover {
-  0%,
   100% {
-    transform: translate3d(0, 0, 0) rotate(-12deg);
-  }
-  20% {
-    transform: translate3d(calc(var(--dx) * 0.7), calc(var(--dy) * -0.35)) rotate(28deg);
-  }
-  45% {
-    transform: translate3d(calc(var(--dx) * -0.4), calc(var(--dy) * 0.45)) rotate(-36deg);
-  }
-  70% {
-    transform: translate3d(calc(var(--dx) * 0.55), calc(var(--dy) * -0.15)) rotate(18deg);
+    transform: translate3d(0, 0, 0) rotate(360deg);
   }
 }
 
-/* 从左被风吹到右边，轨迹上下起伏 */
-@keyframes cross-r {
+@keyframes daofu-gust {
   0% {
     transform: translate3d(0, 0, 0) rotate(-18deg);
   }
-  22% {
-    transform: translate3d(26vw, calc(var(--dy) * -0.8)) rotate(48deg);
+  28% {
+    transform: translate3d(28vw, -9vh, 0) rotate(42deg);
   }
-  48% {
-    transform: translate3d(54vw, calc(var(--dy) * 0.7)) rotate(-22deg);
-  }
-  74% {
-    transform: translate3d(82vw, calc(var(--dy) * -0.45)) rotate(62deg);
+  58% {
+    transform: translate3d(58vw, 11vh, 0) rotate(-28deg);
   }
   100% {
-    transform: translate3d(118vw, calc(var(--dy) * 0.2)) rotate(8deg);
+    transform: translate3d(108vw, -5vh, 0) rotate(14deg);
   }
 }
 
-@keyframes cross-l {
+@keyframes daofu-cross {
   0% {
     transform: translate3d(0, 0, 0) rotate(16deg);
   }
-  22% {
-    transform: translate3d(-26vw, calc(var(--dy) * 0.6)) rotate(-42deg);
+  32% {
+    transform: translate3d(-30vw, 9vh, 0) rotate(-48deg);
   }
-  48% {
-    transform: translate3d(-54vw, calc(var(--dy) * -0.75)) rotate(30deg);
-  }
-  74% {
-    transform: translate3d(-82vw, calc(var(--dy) * 0.35)) rotate(-55deg);
+  66% {
+    transform: translate3d(-62vw, -11vh, 0) rotate(32deg);
   }
   100% {
-    transform: translate3d(-118vw, calc(var(--dy) * -0.15)) rotate(-8deg);
+    transform: translate3d(-108vw, 5vh, 0) rotate(-12deg);
   }
 }
 
-/* 下落途中会被风托起再改方向 */
-@keyframes fall-lift {
+@keyframes daofu-loft {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(10deg);
+  }
+  28% {
+    transform: translate3d(54px, -20vh, 0) rotate(-38deg);
+  }
+  54% {
+    transform: translate3d(-36px, -34vh, 0) rotate(58deg);
+  }
+  78% {
+    transform: translate3d(86px, -18vh, 0) rotate(-16deg);
+  }
+  100% {
+    transform: translate3d(18px, -6vh, 0) rotate(12deg);
+  }
+}
+
+@keyframes daofu-swoop {
   0% {
     transform: translate3d(0, 0, 0) rotate(0deg);
   }
-  16% {
-    transform: translate3d(calc(var(--dx) * 0.7 * var(--flip)), 18vh) rotate(calc(var(--spin) * 0.18));
+  18% {
+    transform: translate3d(72px, 16vh, 0) rotate(62deg);
   }
-  32% {
-    transform: translate3d(calc(var(--dx) * -0.45 * var(--flip)), 36vh) rotate(calc(var(--spin) * 0.36));
+  38% {
+    transform: translate3d(-56px, 8vh, 0) rotate(18deg);
   }
-  46% {
-    transform: translate3d(calc(var(--dx) * 0.55 * var(--flip)), 24vh) rotate(calc(var(--spin) * 0.5));
+  58% {
+    transform: translate3d(64px, 36vh, 0) rotate(138deg);
   }
-  64% {
-    transform: translate3d(calc(var(--dx) * -0.7 * var(--flip)), 52vh) rotate(calc(var(--spin) * 0.68));
-  }
-  82% {
-    transform: translate3d(calc(var(--dx) * 0.35 * var(--flip)), 86vh) rotate(calc(var(--spin) * 0.86));
+  78% {
+    transform: translate3d(-40px, 22vh, 0) rotate(88deg);
   }
   100% {
-    transform: translate3d(calc(var(--dx) * -0.2 * var(--flip)), 118vh) rotate(var(--spin));
+    transform: translate3d(48px, 58vh, 0) rotate(210deg);
   }
 }
 
-/* 从下方被风卷上去，再斜着飘走 */
-@keyframes lift {
+@keyframes daofu-weave {
   0% {
-    transform: translate3d(0, 0, 0) rotate(8deg);
+    transform: translate3d(0, 0, 0) rotate(-10deg);
   }
-  28% {
-    transform: translate3d(calc(var(--dx) * 0.45 * var(--flip)), calc(var(--dy) * -1.4)) rotate(-40deg);
+  20% {
+    transform: translate3d(110px, 8vh, 0) rotate(36deg);
   }
-  52% {
-    transform: translate3d(calc(var(--dx) * -0.25 * var(--flip)), calc(var(--dy) * -2.4)) rotate(55deg);
+  40% {
+    transform: translate3d(-88px, -8vh, 0) rotate(-42deg);
   }
-  76% {
-    transform: translate3d(calc(var(--dx) * 1.1 * var(--flip)), calc(var(--dy) * -1.1)) rotate(-18deg);
+  60% {
+    transform: translate3d(96px, 12vh, 0) rotate(52deg);
+  }
+  80% {
+    transform: translate3d(-64px, -5vh, 0) rotate(-22deg);
   }
   100% {
-    transform: translate3d(calc(var(--dx) * 0.2 * var(--flip)), calc(var(--dy) * -0.2)) rotate(12deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .leaf {
-    animation: none;
-    display: none;
+    transform: translate3d(0, 3vh, 0) rotate(8deg);
   }
 }
 </style>
