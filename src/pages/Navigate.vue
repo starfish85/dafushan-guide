@@ -24,8 +24,7 @@ const straight = computed(() =>
 const entry = computed(() => nearestGate(here.value || dest.value))
 const plan = computed(() => {
   if (!dest.value) return null
-  const from = inPark.value && here.value ? here.value : entry.value
-  if (!from) return null
+  const from = inPark.value && here.value ? here.value : entry.value || dest.value
   return buildRoute(from, dest.value.id)
 })
 const guide = computed(() => nextInstruction(here.value, plan.value?.points || []))

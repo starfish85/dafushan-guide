@@ -33,7 +33,7 @@ const N8 = [
 ]
 
 function idx(x, y) {
-  return y * GRID_W + x
+  return Math.round(y) * GRID_W + Math.round(x)
 }
 
 function cellXY(i) {
@@ -62,7 +62,12 @@ function snapCell(gx, gy) {
 }
 
 export function snapToRoad(point) {
-  const { x, y } = point.x != null ? point : latLngToXy(point)
+  const xy = point && point.x != null && point.y != null ? { x: point.x, y: point.y } : latLngToXy(point)
+  const x = Number(xy.x)
+  const y = Number(xy.y)
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return snapToRoad(getPoi('gate-south'))
+  }
   const [cx, cy] = snapCell(x * (GRID_W - 1), y * (GRID_H - 1))
   return { ...cellToLatLng(cx, cy), cell: [cx, cy] }
 }
@@ -126,17 +131,26 @@ function astar(start, goal) {
 
 export function buildRoute(fromPoint, destPoiId) {
   const dest = getPoi(destPoiId)
-  if (!fromPoint || !dest) return null
+  if (!dest) return null
 
-  const start = snapToRoad(fromPoint)
   const end = snapToRoad(dest)
-  const cells = astar(start.cell, end.cell)
-  if (!cells || cells.length < 1) return null
+  const starts = []
+  if (fromPoint) starts.push(snapToRoad(fromPoint))
+  const gate = nearestGate(fromPoint || dest)
+  if (gate) starts.push(snapToRoad(gate))
+  starts.push(snapToRoad(getPoi('gate-south')))
 
-  // 只画贴在路上的点，避免从定位点斜穿色块
+  let cells = null
+  for (const start of starts) {
+    if (!start?.cell) continue
+    cells = astar(start.cell, end.cell)
+    if (cells && cells.length) break
+  }
+  if (!cells || !cells.length) return null
+
   const points = cells.map(([x, y]) => cellToLatLng(x, y))
-  if (haversine(fromPoint, points[0]) < 50) points.unshift(fromPoint)
-  if (haversine(dest, points[points.length - 1]) < 50) points.push(dest)
+  if (fromPoint && haversine(fromPoint, points[0]) < 40) points.unshift(fromPoint)
+  if (haversine(dest, points[points.length - 1]) < 40) points.push(dest)
 
   let distance = 0
   for (let i = 1; i < points.length; i++) distance += haversine(points[i - 1], points[i])

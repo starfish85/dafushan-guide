@@ -204,6 +204,7 @@ def main():
                 grid[y][x] = 1
     grid = bridge(grid, 12)
     grid = zhang_suen(grid)
+    grid = dilate(grid, 1)
     grid = bridge(grid, 10)
     comps = components(grid)
     for cells_c in comps:
