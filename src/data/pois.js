@@ -141,11 +141,46 @@ const raw = [
 ]
 
 export const TYPE_META = {
-  attraction: { label: '景点', short: '景点', color: '#c81e1e', icon: '景' },
-  toilet: { label: '公共厕所', short: '厕所', color: '#1d4ed8', icon: 'WC' },
-  rest: { label: '休息亭', short: '休息', color: '#a16207', icon: '亭' },
-  exit: { label: '出入口', short: '出口', color: '#b42318', icon: '出' },
-  food: { label: '餐饮', short: '餐饮', color: '#9a3412', icon: '餐' },
+  attraction: {
+    label: '景点',
+    short: '景点',
+    color: '#f3ddd8',
+    ink: '#8d4a44',
+    pin: '#d08a84',
+    icon: '景',
+  },
+  toilet: {
+    label: '公共厕所',
+    short: '厕所',
+    color: '#d9e6f2',
+    ink: '#3f6288',
+    pin: '#7d9cbc',
+    icon: 'WC',
+  },
+  rest: {
+    label: '休息亭',
+    short: '休息',
+    color: '#eee6c8',
+    ink: '#6f5d28',
+    pin: '#c2ae74',
+    icon: '亭',
+  },
+  exit: {
+    label: '出入口',
+    short: '出口',
+    color: '#f1d9d6',
+    ink: '#8d4540',
+    pin: '#cc8882',
+    icon: '出',
+  },
+  food: {
+    label: '餐饮',
+    short: '餐饮',
+    color: '#f0dfd2',
+    ink: '#7d5340',
+    pin: '#c49a82',
+    icon: '餐',
+  },
 }
 
 export const FILTERS = [

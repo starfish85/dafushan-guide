@@ -49,7 +49,7 @@ function meta(poi) {
     <p v-if="!list.length" class="empty">这一类暂时没有地点</p>
     <div class="list">
       <button v-for="poi in list" :key="poi.id" class="card near" @click="open(poi)">
-        <span class="type" :style="{ background: meta(poi).color }">{{ meta(poi).icon }}</span>
+        <span class="type" :style="{ background: meta(poi).color, color: meta(poi).ink }">{{ meta(poi).icon }}</span>
         <span class="main">
           <strong>{{ poi.name }}</strong>
           <em v-if="poi.distance != null">直线 {{ formatDistance(poi.distance) }} · 约{{ poi.walkMin }}分钟</em>
@@ -104,7 +104,6 @@ function meta(poi) {
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;

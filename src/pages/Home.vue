@@ -108,7 +108,10 @@ function typeMeta(poi) {
 
       <div class="near-list">
         <button v-for="poi in nearby" :key="poi.id" class="card near" @click="goPoi(poi)">
-          <span class="type" :style="{ background: typeMeta(poi).color }">
+          <span
+            class="type"
+            :style="{ background: typeMeta(poi).color, color: typeMeta(poi).ink }"
+          >
             {{ typeMeta(poi).icon }}
           </span>
           <span class="near-main">
@@ -308,7 +311,6 @@ function typeMeta(poi) {
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;

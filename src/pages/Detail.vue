@@ -39,7 +39,7 @@ function toggleVoice() {
     </header>
     <section class="pad">
       <article class="card hero">
-        <span class="type" :style="{ background: meta.color }">{{ meta.icon }}</span>
+        <span class="type" :style="{ background: meta.color, color: meta.ink }">{{ meta.icon }}</span>
         <div>
           <p class="kicker">{{ meta.label }}</p>
           <h2>{{ poi.name }}</h2>
@@ -90,7 +90,6 @@ function toggleVoice() {
   width: 52px;
   height: 52px;
   border-radius: 16px;
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -42,7 +42,7 @@ function typeIcon(poi, selected) {
     className: '',
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
-    html: `<div class="${cls}" style="--c:${meta.color}">${isSpot ? '' : meta.icon}</div>`,
+    html: `<div class="${cls}" style="--c:${meta.pin};--ink:${meta.ink}">${isSpot ? '' : meta.icon}</div>`,
   })
 }
 
@@ -193,8 +193,8 @@ defineExpose({ locate, invalidate: () => map?.invalidateSize() })
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: var(--c, #c81e1e);
-  color: #fff;
+  background: var(--c, #d08a84);
+  color: var(--ink, #8d4a44);
   display: flex;
   align-items: center;
   justify-content: center;

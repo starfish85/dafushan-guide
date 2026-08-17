@@ -20,7 +20,7 @@ const distText = computed(() => {
 <template>
   <article class="card box">
     <button class="main" @click="emit('detail', poi)">
-      <span class="type" :style="{ background: meta.color }">{{ meta.icon }}</span>
+      <span class="type" :style="{ background: meta.color, color: meta.ink }">{{ meta.icon }}</span>
       <span class="text">
         <strong>{{ poi.name }}</strong>
         <em>{{ distText }}</em>
@@ -49,7 +49,6 @@ const distText = computed(() => {
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
