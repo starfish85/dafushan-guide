@@ -36,6 +36,13 @@ export function xyToLatLng(x, y) {
   }
 }
 
+export function latLngToXy(point) {
+  return {
+    x: (point.lng - MAP_BOUNDS.west) / (MAP_BOUNDS.east - MAP_BOUNDS.west),
+    y: (MAP_BOUNDS.north - point.lat) / (MAP_BOUNDS.north - MAP_BOUNDS.south),
+  }
+}
+
 export function leafletBounds() {
   return [
     [MAP_BOUNDS.south, MAP_BOUNDS.west],

@@ -1,137 +1,141 @@
-import { haversine, bearing, turnLabel } from '../utils/geo'
-import { getPoi, POIS } from './pois'
+import { bearing, haversine, latLngToXy, turnLabel, xyToLatLng } from '../utils/geo'
+import { getPoi } from './pois'
+import { GRID_H, GRID_W, WALK_CELLS } from './roads'
 
-export const PATH_NODES = Object.fromEntries(
-  POIS.map((p) => [p.id, { id: p.id, x: p.x, y: p.y, lat: p.lat, lng: p.lng }]),
-)
+const walk = new Set(WALK_CELLS)
+const N8 = [
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+  [1, 1],
+  [1, -1],
+  [-1, 1],
+  [-1, -1],
+]
 
-function edgeKey(a, b) {
-  return a < b ? `${a}|${b}` : `${b}|${a}`
+function idx(x, y) {
+  return y * GRID_W + x
 }
 
-function buildAdj() {
-  const ids = Object.keys(PATH_NODES)
-  const pair = new Set()
-
-  const inTree = new Set([ids[0]])
-  while (inTree.size < ids.length) {
-    let bestD = Infinity
-    let bestA
-    let bestB
-    for (const a of inTree) {
-      for (const b of ids) {
-        if (inTree.has(b)) continue
-        const d = haversine(PATH_NODES[a], PATH_NODES[b])
-        if (d < bestD) {
-          bestD = d
-          bestA = a
-          bestB = b
-        }
-      }
-    }
-    inTree.add(bestB)
-    pair.add(edgeKey(bestA, bestB))
-  }
-
-  for (const a of ids) {
-    const near = ids
-      .filter((b) => b !== a)
-      .map((b) => ({ b, d: haversine(PATH_NODES[a], PATH_NODES[b]) }))
-      .sort((x, y) => x.d - y.d)
-      .slice(0, 2)
-    for (const { b } of near) pair.add(edgeKey(a, b))
-  }
-
-  const adj = {}
-  for (const id of ids) adj[id] = []
-  for (const key of pair) {
-    const [a, b] = key.split('|')
-    const d = haversine(PATH_NODES[a], PATH_NODES[b])
-    adj[a].push({ to: b, d })
-    adj[b].push({ to: a, d })
-  }
-  return adj
+function cellXY(i) {
+  return [i % GRID_W, Math.floor(i / GRID_W)]
 }
 
-const adj = buildAdj()
+function cellToLatLng(x, y) {
+  return xyToLatLng(x / (GRID_W - 1), y / (GRID_H - 1))
+}
 
-export function nearestNodeId(point) {
-  let best = null
+function snapCell(gx, gy) {
+  const clampedX = Math.max(0, Math.min(GRID_W - 1, Math.round(gx)))
+  const clampedY = Math.max(0, Math.min(GRID_H - 1, Math.round(gy)))
+  if (walk.has(idx(clampedX, clampedY))) return [clampedX, clampedY]
+  let best = [clampedX, clampedY]
   let bestD = Infinity
-  for (const node of Object.values(PATH_NODES)) {
-    const d = haversine(point, node)
+  for (const cell of WALK_CELLS) {
+    const [x, y] = cellXY(cell)
+    const d = (x - clampedX) * (x - clampedX) + (y - clampedY) * (y - clampedY)
     if (d < bestD) {
       bestD = d
-      best = node.id
+      best = [x, y]
     }
   }
   return best
 }
 
-export function nodeForPoi(poiId) {
-  if (PATH_NODES[poiId]) return poiId
-  const poi = getPoi(poiId)
-  if (!poi) return nearestNodeId(POIS[0])
-  return nearestNodeId(poi)
+export function snapToRoad(point) {
+  const { x, y } = point.x != null ? point : latLngToXy(point)
+  const [cx, cy] = snapCell(x * (GRID_W - 1), y * (GRID_H - 1))
+  return { ...cellToLatLng(cx, cy), cell: [cx, cy] }
 }
 
-export function shortestPath(fromId, toId) {
-  if (!PATH_NODES[fromId] || !PATH_NODES[toId]) return null
-  const dist = {}
-  const prev = {}
-  const used = new Set()
-  for (const id of Object.keys(PATH_NODES)) dist[id] = Infinity
-  dist[fromId] = 0
+function astar(start, goal) {
+  const startI = idx(start[0], start[1])
+  const goalI = idx(goal[0], goal[1])
+  if (!walk.has(startI) || !walk.has(goalI)) return null
 
-  while (used.size < Object.keys(PATH_NODES).length) {
-    let u = null
-    let best = Infinity
-    for (const id of Object.keys(PATH_NODES)) {
-      if (!used.has(id) && dist[id] < best) {
-        best = dist[id]
-        u = id
+  const came = new Map()
+  const gScore = new Map([[startI, 0]])
+  const open = [startI]
+  const inOpen = new Set([startI])
+
+  while (open.length) {
+    let bestAt = 0
+    let bestF = Infinity
+    for (let i = 0; i < open.length; i++) {
+      const id = open[i]
+      const [x, y] = cellXY(id)
+      const f = (gScore.get(id) || 1e15) + Math.hypot(x - goal[0], y - goal[1])
+      if (f < bestF) {
+        bestF = f
+        bestAt = i
       }
     }
-    if (u == null) break
-    if (u === toId) break
-    used.add(u)
-    for (const { to, d } of adj[u]) {
-      const nd = dist[u] + d
-      if (nd < dist[to]) {
-        dist[to] = nd
-        prev[to] = u
+    const current = open.splice(bestAt, 1)[0]
+    inOpen.delete(current)
+    if (current === goalI) {
+      const path = [current]
+      let cur = current
+      while (came.has(cur)) {
+        cur = came.get(cur)
+        path.push(cur)
+      }
+      path.reverse()
+      return path.map(cellXY)
+    }
+
+    const [x, y] = cellXY(current)
+    for (const [dx, dy] of N8) {
+      const nx = x + dx
+      const ny = y + dy
+      if (nx < 0 || ny < 0 || nx >= GRID_W || ny >= GRID_H) continue
+      const ni = idx(nx, ny)
+      if (!walk.has(ni)) continue
+      const step = dx && dy ? 1.414 : 1
+      const tentative = (gScore.get(current) || 1e15) + step
+      if (tentative < (gScore.get(ni) ?? 1e15)) {
+        came.set(ni, current)
+        gScore.set(ni, tentative)
+        if (!inOpen.has(ni)) {
+          open.push(ni)
+          inOpen.add(ni)
+        }
       }
     }
   }
+  return null
+}
 
-  if (dist[toId] === Infinity) return null
-  const ids = []
-  let cur = toId
-  while (cur) {
-    ids.push(cur)
-    cur = prev[cur]
+function simplify(cells) {
+  if (cells.length < 3) return cells
+  const out = [cells[0]]
+  for (let i = 1; i < cells.length - 1; i++) {
+    const [ax, ay] = out[out.length - 1]
+    const [bx, by] = cells[i]
+    const [cx, cy] = cells[i + 1]
+    if ((bx - ax) * (cy - by) !== (by - ay) * (cx - bx)) out.push(cells[i])
   }
-  ids.reverse()
-  const points = ids.map((id) => PATH_NODES[id])
-  return { ids, points, distance: dist[toId] }
+  out.push(cells[cells.length - 1])
+  return out
 }
 
 export function buildRoute(fromPoint, destPoiId) {
-  const startId = nearestNodeId(fromPoint)
-  const endId = nodeForPoi(destPoiId)
-  const path = shortestPath(startId, endId)
-  if (!path) return null
-
   const dest = getPoi(destPoiId)
-  const points = [{ ...fromPoint }, ...path.points]
-  if (dest) points.push(dest)
+  if (!fromPoint || !dest) return null
+
+  const start = snapToRoad(fromPoint)
+  const end = snapToRoad(dest)
+  const cells = astar(start.cell, end.cell)
+  if (!cells) return null
+
+  const kept = simplify(cells)
+  const mid = kept.map(([x, y]) => cellToLatLng(x, y))
+  const points = [fromPoint, ...mid, dest]
 
   let distance = 0
-  for (let i = 1; i < points.length; i++) {
-    distance += haversine(points[i - 1], points[i])
-  }
+  for (let i = 1; i < points.length; i++) distance += haversine(points[i - 1], points[i])
 
-  return { ...path, points, distance, dest }
+  return { points, distance, dest, cells: kept }
 }
 
 export function nextInstruction(user, routePoints) {
@@ -149,9 +153,7 @@ export function nextInstruction(user, routePoints) {
     }
   }
 
-  const remainParts = [
-    haversine(user, routePoints[Math.min(nearest + 1, routePoints.length - 1)]),
-  ]
+  const remainParts = [haversine(user, routePoints[Math.min(nearest + 1, routePoints.length - 1)])]
   for (let i = nearest + 1; i < routePoints.length - 1; i++) {
     remainParts.push(haversine(routePoints[i], routePoints[i + 1]))
   }
