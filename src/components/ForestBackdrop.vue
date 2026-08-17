@@ -1,5 +1,5 @@
 <script setup>
-const VARIANTS = ['drift', 'stall', 'blow-r', 'blow-l', 'tumble', 'flutter']
+const VARIANTS = ['drift', 'sweep', 'blow-r', 'blow-l', 'tumble', 'flutter']
 const COLORS = ['#1a6b34', '#2f7a3d', '#3d8b4a', '#6aa56a', '#4a8f52']
 
 function rand(min, max) {
@@ -35,7 +35,7 @@ const leaves = Array.from({ length: 11 }, (_, i) => {
         height: leaf.s * 1.35 + 'px',
         opacity: leaf.opacity,
         background: leaf.color,
-        animation: `daofu-${leaf.kind} ${leaf.duration} ease-in ${leaf.delay} infinite`,
+        animation: `daofu-${leaf.kind} ${leaf.duration} linear ${leaf.delay} infinite`,
       }"
     />
   </div>
@@ -64,7 +64,7 @@ const leaves = Array.from({ length: 11 }, (_, i) => {
 </style>
 
 <style>
-/* 都会落到屏幕外。中途可被风带偏、短暂托一下，但不在空中打转。 */
+/* 左右飘、翻转，但高度一直往下，中间不停。 */
 @keyframes daofu-drift {
   0% {
     transform: translate3d(0, 0, 0) rotate(0deg);
@@ -86,21 +86,21 @@ const leaves = Array.from({ length: 11 }, (_, i) => {
   }
 }
 
-@keyframes daofu-stall {
+@keyframes daofu-sweep {
   0% {
     transform: translate3d(0, 0, 0) rotate(-16deg);
   }
-  22% {
-    transform: translate3d(-64px, 26vh, 0) rotate(42deg);
+  20% {
+    transform: translate3d(-68px, 22vh, 0) rotate(42deg);
   }
   40% {
-    transform: translate3d(28px, 40vh, 0) rotate(18deg);
+    transform: translate3d(36px, 46vh, 0) rotate(18deg);
   }
-  52% {
-    transform: translate3d(96px, 35vh, 0) rotate(-28deg);
+  62% {
+    transform: translate3d(92px, 74vh, 0) rotate(-28deg);
   }
-  70% {
-    transform: translate3d(-24px, 68vh, 0) rotate(96deg);
+  82% {
+    transform: translate3d(-28px, 98vh, 0) rotate(96deg);
   }
   100% {
     transform: translate3d(46px, 124vh, 0) rotate(210deg);
@@ -172,22 +172,22 @@ const leaves = Array.from({ length: 11 }, (_, i) => {
     transform: translate3d(0, 0, 0) rotate(8deg);
   }
   16% {
-    transform: translate3d(48px, 8vh, 0) rotate(-22deg);
+    transform: translate3d(48px, 18vh, 0) rotate(-22deg);
   }
-  30% {
-    transform: translate3d(-36px, 16vh, 0) rotate(28deg);
+  32% {
+    transform: translate3d(-36px, 38vh, 0) rotate(28deg);
   }
-  48% {
-    transform: translate3d(78px, 40vh, 0) rotate(108deg);
+  50% {
+    transform: translate3d(78px, 60vh, 0) rotate(108deg);
   }
   68% {
-    transform: translate3d(-52px, 70vh, 0) rotate(172deg);
+    transform: translate3d(-52px, 82vh, 0) rotate(172deg);
   }
   86% {
-    transform: translate3d(28px, 98vh, 0) rotate(236deg);
+    transform: translate3d(28px, 104vh, 0) rotate(236deg);
   }
   100% {
-    transform: translate3d(-16px, 122vh, 0) rotate(290deg);
+    transform: translate3d(-16px, 124vh, 0) rotate(290deg);
   }
 }
 </style>
