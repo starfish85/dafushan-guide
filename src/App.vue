@@ -6,6 +6,7 @@ import ForestBackdrop from './components/ForestBackdrop.vue'
 import { app, applyFontToDocument } from './stores/app'
 import { useGeolocation } from './composables/useGeolocation'
 import { useProximityGuide } from './composables/useProximityGuide'
+import { unlockVoice } from './utils/voice'
 
 const route = useRoute()
 const showTab = computed(() => route.meta.tab !== false)
@@ -16,6 +17,10 @@ useProximityGuide()
 onMounted(() => {
   applyFontToDocument()
   if (app.onboarded) startWatch()
+  const unlock = () => unlockVoice()
+  window.addEventListener('pointerdown', unlock, { once: true })
+  window.addEventListener('touchstart', unlock, { once: true })
+  window.addEventListener('click', unlock, { once: true })
 })
 </script>
 

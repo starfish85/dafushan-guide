@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { FONT_OPTIONS, app, persistSettings, setFontSize } from '../stores/app'
+import { speak } from '../utils/voice'
 import { PARK_INFO, POIS } from '../data/pois'
 import { useGeolocation } from '../composables/useGeolocation'
 
@@ -69,6 +70,9 @@ function onMockChange() {
           step="0.05"
           @change="persistSettings()"
         />
+        <button class="primary-btn extra" type="button" @click="speak('这里是大夫山森林公园。语音讲解已打开。', { force: true })">
+          试听语音
+        </button>
       </article>
 
       <article class="card box">
@@ -190,6 +194,9 @@ function onMockChange() {
   width: 100%;
   height: 36px;
   accent-color: var(--primary);
+}
+.extra {
+  margin-top: 14px;
 }
 .check {
   display: flex;

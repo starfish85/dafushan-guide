@@ -25,8 +25,13 @@ function toggleVoice() {
     playing.value = false
     return
   }
-  speak(text, { force: true })
-  playing.value = true
+  const ok = speak(text, {
+    force: true,
+    onEnd: () => {
+      playing.value = false
+    },
+  })
+  playing.value = ok
 }
 </script>
 
@@ -60,9 +65,9 @@ function toggleVoice() {
 
       <article class="card voice">
         <p class="voice-title">语音介绍</p>
-        <button class="play" @click="toggleVoice">
+        <button class="play" type="button" @click="toggleVoice">
           <span class="orb">{{ playing ? '■' : '▶' }}</span>
-          <i :class="{ on: playing }" />
+          <span class="play-text">{{ playing ? '正在讲解，点一下停止' : '点这里听讲解' }}</span>
         </button>
       </article>
 
@@ -156,14 +161,10 @@ h3,
   align-items: center;
   justify-content: center;
   font-size: 16px;
+  flex: none;
 }
-.play i {
-  flex: 1;
-  height: 8px;
-  border-radius: 8px;
-  background: #e6e6e6;
-}
-.play i.on {
-  background: linear-gradient(90deg, var(--primary) 0 55%, #e6e6e6 55% 100%);
+.play-text {
+  font-weight: 800;
+  color: var(--primary);
 }
 </style>
