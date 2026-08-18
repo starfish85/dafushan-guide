@@ -115,6 +115,8 @@ function search() {
   padding: 8px 16px 8px;
   display: grid;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 .loc {
   display: flex;
@@ -162,16 +164,20 @@ function search() {
 }
 .quick {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 .help-entry,
 .near-entry {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
   min-height: 56px;
-  padding: 8px 12px;
+  padding: 8px 10px;
   text-align: left;
   width: 100%;
 }
@@ -195,13 +201,18 @@ function search() {
   background: #e4f4e2;
   color: var(--primary);
 }
+.help-entry strong,
+.near-entry strong {
+  min-width: 0;
+  font-size: var(--fs-md);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
 .help-entry strong {
   color: #b42318;
-  font-size: var(--fs-md);
 }
 .near-entry strong {
   color: var(--primary);
-  font-size: var(--fs-md);
 }
 .home-search {
   min-height: var(--tap);
@@ -214,10 +225,12 @@ function search() {
 .map-entry {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 12px 8px 8px;
+  gap: 10px;
+  padding: 8px 10px 8px 8px;
   text-align: left;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 .map-entry img {
   width: 72px;
@@ -232,6 +245,7 @@ function search() {
   font-size: var(--fs-md);
   font-weight: 800;
   color: var(--primary);
+  overflow-wrap: anywhere;
 }
 .map-go {
   width: 36px;
@@ -257,12 +271,17 @@ function search() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   padding: 12px 14px;
   text-align: left;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 .route strong {
+  flex: 1;
+  min-width: 0;
   font-size: var(--fs-md);
   color: var(--primary);
 }
