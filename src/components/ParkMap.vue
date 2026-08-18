@@ -2,7 +2,8 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import L from 'leaflet'
 import { FILTERS, TYPE_META } from '../data/pois'
-import { leafletBounds } from '../utils/geo'
+import { showToast } from '../stores/app'
+import { isInsidePark, leafletBounds } from '../utils/geo'
 
 const props = defineProps({
   pois: { type: Array, default: () => [] },
@@ -16,6 +17,7 @@ const props = defineProps({
 const emit = defineEmits(['select', 'filter', 'locate'])
 
 const el = ref(null)
+const filtersEl = ref(null)
 let map
 let overlay
 let userLayer
@@ -99,16 +101,21 @@ onMounted(() => {
     maxZoom: 18,
   })
   const mapUrl = `${import.meta.env.BASE_URL}maps/park.jpg?v=3`
-  overlay = L.imageOverlay(mapUrl, bounds, { opacity: 1, interactive: true })
+  overlay = L.imageOverlay(mapUrl, bounds, { opacity: 1, interactive: false })
   overlay.addTo(map)
-  map.fitBounds(bounds, { padding: [8, 8] })
+  map.fitBounds(bounds, { padding: [8, 8], animate: false })
   map.setMaxBounds(bounds)
+  map.options.maxBoundsViscosity = 1
   routeLayer = L.layerGroup().addTo(map)
   poiLayer = L.layerGroup().addTo(map)
   userLayer = L.layerGroup().addTo(map)
   drawRoute()
   drawPois()
   drawUser()
+  if (filtersEl.value) {
+    L.DomEvent.disableClickPropagation(filtersEl.value)
+    L.DomEvent.disableScrollPropagation(filtersEl.value)
+  }
   requestAnimationFrame(() => map.invalidateSize())
 })
 
@@ -124,9 +131,18 @@ onBeforeUnmount(() => {
 
 function locate() {
   emit('locate')
-  if (props.user && map) {
-    map.setView([props.user.lat, props.user.lng], Math.max(map.getZoom(), 16))
+  if (!map) return
+  map.stop()
+  const bounds = leafletBounds()
+  const here = props.user
+  if (here && isInsidePark(here) && Number.isFinite(here.lat) && Number.isFinite(here.lng)) {
+    map.setView([here.lat, here.lng], Math.max(map.getZoom(), 16), { animate: false })
+  } else {
+    map.fitBounds(bounds, { padding: [8, 8], animate: false })
+    if (here) showToast('您不在园内，已回到全园地图')
+    else showToast('还没有定位，已回到全园地图')
   }
+  requestAnimationFrame(() => map.invalidateSize())
 }
 
 defineExpose({ locate, invalidate: () => map?.invalidateSize() })
@@ -135,17 +151,25 @@ defineExpose({ locate, invalidate: () => map?.invalidateSize() })
 <template>
   <div class="wrap">
     <div ref="el" class="map" />
-    <div v-if="showFilters" class="filters">
+    <div
+      v-if="showFilters"
+      ref="filtersEl"
+      class="filters"
+      @pointerdown.stop
+      @mousedown.stop
+      @touchstart.stop
+    >
       <button
         v-for="item in FILTERS"
         :key="item.id"
+        type="button"
         class="chip"
         :class="{ on: activeFilter === item.id }"
-        @click="$emit('filter', activeFilter === item.id ? '' : item.id)"
+        @click.stop="$emit('filter', activeFilter === item.id ? '' : item.id)"
       >
         {{ item.label }}
       </button>
-      <button class="chip locate" @click="locate">回到当前位置</button>
+      <button type="button" class="chip locate" @click.stop="locate">回到当前位置</button>
     </div>
   </div>
 </template>
@@ -154,21 +178,25 @@ defineExpose({ locate, invalidate: () => map?.invalidateSize() })
 .wrap {
   position: relative;
   height: 100%;
+  overflow: hidden;
 }
 .map {
   height: 100%;
   width: 100%;
+  overflow: hidden;
+  z-index: 0;
 }
 .filters {
   position: absolute;
   left: 8px;
   right: 8px;
   bottom: 10px;
-  z-index: 8;
+  z-index: 2000;
   display: flex;
   gap: 6px;
   overflow-x: auto;
   padding: 4px 2px;
+  pointer-events: auto;
 }
 .chip {
   flex: 0 0 auto;
