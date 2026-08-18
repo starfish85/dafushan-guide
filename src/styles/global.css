@@ -27,6 +27,7 @@
   --fs-hero: 30px;
   --tap: 48px;
   --tap-main: 60px;
+  --home-map-h: 128px;
 }
 
 [data-font='large'] {
@@ -39,6 +40,7 @@
   --tap: 56px;
   --tap-main: 68px;
   --tab-h: calc(70px + env(safe-area-inset-bottom, 0px));
+  --home-map-h: 100px;
 }
 
 [data-font='xlarge'] {
@@ -51,6 +53,7 @@
   --tap: 60px;
   --tap-main: 76px;
   --tab-h: calc(76px + env(safe-area-inset-bottom, 0px));
+  --home-map-h: 88px;
 }
 
 * {
@@ -58,13 +61,22 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html,
+html {
+  margin: 0;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+}
+
 body,
 #app {
   margin: 0;
-  height: 100%;
-  max-height: 100dvh;
-  overflow: hidden;
+  min-height: 100%;
+  height: auto;
+  max-height: none;
+  overflow: visible;
   background: var(--bg);
   color: var(--text);
   font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
@@ -101,25 +113,23 @@ img {
 }
 
 .app-shell {
-  height: 100%;
-  max-height: 100dvh;
+  min-height: 100%;
+  height: auto;
+  max-height: none;
   max-width: 480px;
   margin: 0 auto;
   background: transparent;
   position: relative;
   z-index: 1;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
+  overflow: visible;
   overflow-wrap: break-word;
 }
 
 .page {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
-  padding-bottom: calc(var(--tab-h) + 16px);
+  min-height: auto;
+  padding-bottom: calc(var(--tab-h) + 28px);
   background: transparent;
 }
 

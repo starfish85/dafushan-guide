@@ -29,6 +29,15 @@ export const FONT_OPTIONS = [
 
 export function applyFontToDocument() {
   document.documentElement.dataset.font = app.fontSize
+  document.documentElement.style.height = 'auto'
+  document.documentElement.style.overflowY = 'scroll'
+  document.body.style.height = 'auto'
+  document.body.style.overflow = 'visible'
+  const root = document.getElementById('app')
+  if (root) {
+    root.style.height = 'auto'
+    root.style.overflow = 'visible'
+  }
 }
 
 export function persistSettings() {
@@ -49,13 +58,14 @@ export function persistSettings() {
 export function restoreSettings() {
   try {
     const raw = localStorage.getItem(KEY)
-    if (!raw) return
-    const data = JSON.parse(raw)
-    Object.assign(app, data)
-    applyFontToDocument()
+    if (raw) {
+      const data = JSON.parse(raw)
+      Object.assign(app, data)
+    }
   } catch {
     /* ignore */
   }
+  applyFontToDocument()
 }
 
 export function setFontSize(id) {

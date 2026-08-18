@@ -133,7 +133,7 @@ function typeMeta(poi) {
   background: transparent;
 }
 .hero {
-  padding: calc(18px + var(--safe-top)) 20px 8px;
+  padding: calc(12px + var(--safe-top)) 20px 4px;
   text-align: left;
 }
 .eyebrow {
@@ -151,16 +151,16 @@ function typeMeta(poi) {
   letter-spacing: 0.02em;
 }
 .pad {
-  padding: 12px 16px 8px;
+  padding: 8px 16px 8px;
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 .loc {
   display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 14px 14px 14px 12px;
+  padding: 12px;
 }
 .badge {
   width: 44px;
@@ -211,7 +211,7 @@ function typeMeta(poi) {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   text-align: left;
   width: 100%;
 }
@@ -253,7 +253,7 @@ function typeMeta(poi) {
 }
 .map-entry img {
   width: 100%;
-  height: 168px;
+  height: var(--home-map-h, 128px);
   object-fit: cover;
 }
 .map-cta {
@@ -341,7 +341,7 @@ function typeMeta(poi) {
 .intro {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   overflow: hidden;
   color: #3d4a3c;
   font-size: var(--fs-xs);
