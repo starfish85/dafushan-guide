@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { PARK_INFO, POIS, TYPE_META, withDistance } from '../data/pois'
+import { PARK_INFO, POIS, withDistance } from '../data/pois'
 import { ROUTES } from '../data/routes'
 import { app, userPoint } from '../stores/app'
 import { formatDistance, isInsidePark } from '../utils/geo'
@@ -23,25 +23,8 @@ const locationTitle = computed(() => {
   if (nearest.distance <= 80) return `${nearest.name}附近`
   return `园内，距${nearest.name}约${formatDistance(nearest.distance)}`
 })
-const locationHint = computed(() => {
-  if (!here.value) return '点右侧按钮开启定位后，再显示距离'
-  if (here.value.source === 'mock') return '室内演示，不是手机真实定位'
-  if (here.value.accuracy) return `真实定位，精度约${Math.round(here.value.accuracy)}米`
-  return '真实定位。距离为直线，会比高德开车短'
-})
-const nearby = computed(() => withDistance(POIS, here.value).slice(0, 3))
-
 function search() {
   router.push({ name: 'nearby', query: { q: keyword.value } })
-}
-
-function goPoi(poi) {
-  if (poi.type === 'attraction') router.push({ name: 'detail', params: { id: poi.id } })
-  else router.push({ name: 'navigate', params: { id: poi.id } })
-}
-
-function typeMeta(poi) {
-  return TYPE_META[poi.type]
 }
 </script>
 
@@ -58,7 +41,6 @@ function typeMeta(poi) {
         <div class="loc-text">
           <p class="kicker">您当前位于</p>
           <strong>{{ locationTitle }}</strong>
-          <small>{{ locationHint }}</small>
         </div>
         <button
           v-if="!here || here.source !== 'gps'"
@@ -69,27 +51,29 @@ function typeMeta(poi) {
         </button>
       </article>
 
-      <button class="card help-entry" @click="router.push({ name: 'help' })">
-        <span class="help-mark">!</span>
-        <span>
+      <div class="quick">
+        <button class="card help-entry" @click="router.push({ name: 'help' })">
+          <span class="help-mark">!</span>
           <strong>求助</strong>
-          <em>打电话给景区或报警急救</em>
-        </span>
-      </button>
+        </button>
+        <button class="card near-entry" @click="router.push({ name: 'nearby' })">
+          <span class="near-mark">近</span>
+          <strong>附近地点</strong>
+        </button>
+      </div>
 
-      <form class="search-box" @submit.prevent="search">
+      <form class="search-box home-search" @submit.prevent="search">
         <span class="search-ico" aria-hidden="true">⌕</span>
         <input v-model="keyword" type="search" placeholder="想去哪里？" enterkeyhint="search" />
       </form>
 
       <button class="card map-entry" @click="router.push({ name: 'map' })">
-        <img :src="`${base}maps/park-thumb.jpg?v=3`" alt="景区地图" />
+        <img :src="`${base}maps/park-thumb.jpg?v=3`" alt="" />
         <span class="map-cta">查看完整地图</span>
+        <span class="map-go">去</span>
       </button>
 
-      <div class="near-head">
-        <h2 class="section-title">推荐路线</h2>
-      </div>
+      <h2 class="section-title">推荐路线</h2>
       <div class="routes">
         <button
           v-for="item in ROUTES"
@@ -98,30 +82,7 @@ function typeMeta(poi) {
           @click="router.push({ name: 'route', params: { id: item.id } })"
         >
           <strong>{{ item.name }}</strong>
-          <em>{{ item.audience }} · 约{{ item.minutes }}分钟</em>
-        </button>
-      </div>
-
-      <div class="near-head">
-        <h2 class="section-title">附近</h2>
-        <button class="more" @click="router.push({ name: 'nearby' })">查看更多</button>
-      </div>
-
-      <div class="near-list">
-        <button v-for="poi in nearby" :key="poi.id" class="card near" @click="goPoi(poi)">
-          <span
-            class="type"
-            :style="{ background: typeMeta(poi).color, color: typeMeta(poi).ink }"
-          >
-            {{ typeMeta(poi).icon }}
-          </span>
-          <span class="near-main">
-            <strong>{{ poi.name }}</strong>
-            <em v-if="poi.distance != null">直线 {{ formatDistance(poi.distance) }}</em>
-            <em v-else>定位后显示距离</em>
-            <small v-if="poi.intro" class="intro">{{ poi.intro }}</small>
-          </span>
-          <span class="go">去</span>
+          <em>约{{ item.minutes }}分钟</em>
         </button>
       </div>
     </section>
@@ -133,11 +94,11 @@ function typeMeta(poi) {
   background: transparent;
 }
 .hero {
-  padding: calc(12px + var(--safe-top)) 20px 4px;
+  padding: calc(10px + var(--safe-top)) 20px 2px;
   text-align: left;
 }
 .eyebrow {
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   color: var(--primary);
   font-size: var(--fs-xs);
   font-weight: 800;
@@ -146,26 +107,25 @@ function typeMeta(poi) {
 .hero h1 {
   margin: 0;
   color: var(--primary);
-  font-size: var(--fs-xl);
+  font-size: var(--fs-lg);
   font-weight: 800;
   letter-spacing: 0.02em;
 }
 .pad {
   padding: 8px 16px 8px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .loc {
   display: flex;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 12px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
 }
 .badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: #e4f4e2;
   color: var(--primary);
   display: flex;
@@ -187,18 +147,11 @@ function typeMeta(poi) {
 .loc strong {
   display: block;
   font-size: var(--fs-md);
-  line-height: 1.3;
-}
-.loc small {
-  display: block;
-  margin-top: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
+  line-height: 1.25;
 }
 .loc-btn {
   flex: none;
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 12px;
   border-radius: 999px;
   background: var(--primary);
@@ -207,39 +160,51 @@ function typeMeta(poi) {
   font-weight: 800;
   white-space: nowrap;
 }
-.help-entry {
+.quick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.help-entry,
+.near-entry {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 8px;
+  min-height: 56px;
+  padding: 8px 12px;
   text-align: left;
   width: 100%;
 }
-.help-mark {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: #b42318;
-  color: #fff;
+.help-mark,
+.near-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 800;
   flex: none;
 }
-.help-entry strong {
-  display: block;
-  font-size: var(--fs-md);
-  color: #b42318;
+.help-mark {
+  background: #b42318;
+  color: #fff;
 }
-.help-entry em {
-  display: block;
-  margin-top: 2px;
-  font-style: normal;
-  color: var(--muted);
-  font-size: var(--fs-xs);
-  font-weight: 700;
+.near-mark {
+  background: #e4f4e2;
+  color: var(--primary);
+}
+.help-entry strong {
+  color: #b42318;
+  font-size: var(--fs-md);
+}
+.near-entry strong {
+  color: var(--primary);
+  font-size: var(--fs-md);
+}
+.home-search {
+  min-height: var(--tap);
 }
 .search-ico {
   color: var(--primary);
@@ -247,110 +212,30 @@ function typeMeta(poi) {
   font-weight: 700;
 }
 .map-entry {
-  overflow: hidden;
-  padding: 0;
-  text-align: left;
-}
-.map-entry img {
-  width: 100%;
-  height: var(--home-map-h, 128px);
-  object-fit: cover;
-}
-.map-cta {
-  display: block;
-  padding: 12px 16px 14px;
-  font-size: var(--fs-md);
-  font-weight: 800;
-  color: var(--primary);
-}
-.routes {
-  display: grid;
-  gap: 8px;
-}
-.route {
-  padding: 14px 16px;
-  text-align: left;
-  width: 100%;
-}
-.route strong {
-  display: block;
-  font-size: var(--fs-md);
-  color: var(--primary);
-}
-.route em {
-  display: block;
-  margin-top: 4px;
-  font-style: normal;
-  color: var(--muted);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-}
-.near-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 4px;
-}
-.section-title {
-  margin: 0;
-}
-.more {
-  min-height: 40px;
-  color: var(--primary);
-  font-weight: 800;
-}
-.near-list {
-  display: grid;
-  gap: 10px;
-}
-.near {
-  width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
+  padding: 8px 12px 8px 8px;
   text-align: left;
+  width: 100%;
 }
-.type {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 800;
+.map-entry img {
+  width: 72px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 12px;
   flex: none;
 }
-.near-main {
+.map-cta {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.near-main strong {
   font-size: var(--fs-md);
+  font-weight: 800;
+  color: var(--primary);
 }
-.near-main em {
-  font-style: normal;
-  color: var(--muted);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-}
-.intro {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  overflow: hidden;
-  color: #3d4a3c;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  line-height: 1.4;
-}
-.go {
-  width: 40px;
-  height: 40px;
+.map-go {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #e4f4e2;
   color: var(--primary);
@@ -359,5 +244,33 @@ function typeMeta(poi) {
   justify-content: center;
   font-weight: 800;
   flex: none;
+}
+.section-title {
+  margin: 6px 0 0;
+  font-size: var(--fs-sm);
+}
+.routes {
+  display: grid;
+  gap: 8px;
+}
+.route {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  text-align: left;
+  width: 100%;
+}
+.route strong {
+  font-size: var(--fs-md);
+  color: var(--primary);
+}
+.route em {
+  flex: none;
+  font-style: normal;
+  color: var(--muted);
+  font-size: var(--fs-xs);
+  font-weight: 700;
 }
 </style>
