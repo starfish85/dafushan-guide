@@ -187,6 +187,12 @@ function callNow() {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+.row .call {
+  min-width: 0;
+}
+.row .txt strong {
+  font-size: var(--fs-md);
+}
 .hint {
   margin: 4px 4px 0;
   color: var(--muted);

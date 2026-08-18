@@ -13,7 +13,7 @@ function spot(id, name, type, x, y, extra = {}) {
     y,
     recommendMin: extra.recommendMin ?? (type === 'attraction' ? 15 : 5),
     intro: extra.intro || copy.intro || facilityIntro(name, type),
-    voice: extra.voice || copy.voice || facilityVoice(name, type),
+    voice: extra.intro || copy.intro || extra.voice || copy.voice || facilityIntro(name, type),
     photo: extra.photo || copy.photo,
     hours: extra.hours,
     tags: extra.tags,

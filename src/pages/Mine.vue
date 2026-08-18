@@ -136,11 +136,14 @@ function onMockChange() {
 }
 .font-chip {
   flex: 1;
+  min-width: 0;
   min-height: 48px;
+  padding: 6px 4px;
   border-radius: 14px;
   background: #e4f4e2;
   color: var(--primary);
   font-weight: 800;
+  line-height: 1.2;
 }
 .font-chip.on {
   background: var(--primary);
@@ -163,6 +166,15 @@ function onMockChange() {
   min-height: 52px;
   font-size: var(--fs-md);
   font-weight: 800;
+}
+.line span {
+  min-width: 0;
+  flex: 1;
+}
+.line select,
+.switch {
+  flex: none;
+  max-width: 58%;
 }
 .line select {
   font-size: var(--fs-sm);

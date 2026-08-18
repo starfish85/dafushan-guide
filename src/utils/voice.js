@@ -5,8 +5,11 @@ const base = import.meta.env.BASE_URL || './'
 let bound = null
 let speakingKey = ''
 
+const AUDIO_VER = '3'
+
 export function audioUrl(clip) {
-  return `${base}audio/${clip}.wav`
+  const ext = String(clip || '').startsWith('poi/') ? 'm4a' : 'wav'
+  return `${base}audio/${clip}.${ext}?v=${AUDIO_VER}`
 }
 
 export function clipForPoi(id) {
@@ -112,7 +115,13 @@ export function speak(text, { force = false, onEnd, clip } = {}) {
   a.muted = false
   a.volume = Math.min(1, Math.max(0.2, Number(app.volume) || 0.9))
   const url = audioUrl(file)
-  if (!a.src.endsWith(`${file}.wav`)) a.src = url
+  a.src = url
+  try {
+    a.load()
+    a.currentTime = 0
+  } catch {
+    /* ignore */
+  }
 
   a.onended = () => finish(key, onEnd)
   a.onerror = () => {

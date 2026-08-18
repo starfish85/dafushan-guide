@@ -157,7 +157,8 @@ function typeMeta(poi) {
 }
 .loc {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 14px 14px 14px 12px;
 }
@@ -204,6 +205,7 @@ function typeMeta(poi) {
   color: #fff;
   font-size: var(--fs-xs);
   font-weight: 800;
+  white-space: nowrap;
 }
 .help-entry {
   display: flex;

@@ -19,12 +19,15 @@ const percent = computed(() => {
 })
 
 function fmt(sec) {
-  const s = Math.max(0, Math.floor(sec || 0))
-  return `0:${String(s).padStart(2, '0')}`
+  const total = Math.max(0, Math.floor(Number(sec) || 0))
+  const m = Math.floor(total / 60)
+  const s = total % 60
+  return `${m}:${String(s).padStart(2, '0')}`
 }
 
 function onMeta() {
-  if (el.value) duration.value = el.value.duration || 0
+  const d = el.value?.duration
+  duration.value = Number.isFinite(d) ? d : 0
 }
 function onTime() {
   if (el.value) current.value = el.value.currentTime || 0
@@ -38,6 +41,7 @@ onMounted(() => {
   bindPlayer(el.value)
   if (el.value) {
     el.value.addEventListener('loadedmetadata', onMeta)
+    el.value.addEventListener('durationchange', onMeta)
     el.value.addEventListener('timeupdate', onTime)
     el.value.addEventListener('ended', onDone)
   }
@@ -45,6 +49,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (el.value) {
     el.value.removeEventListener('loadedmetadata', onMeta)
+    el.value.removeEventListener('durationchange', onMeta)
     el.value.removeEventListener('timeupdate', onTime)
     el.value.removeEventListener('ended', onDone)
   }
