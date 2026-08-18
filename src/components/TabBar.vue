@@ -34,16 +34,14 @@ function go(name) {
 
 <style scoped>
 .tabbar {
-  position: fixed;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  width: min(480px, 100%);
+  position: relative;
+  flex: none;
+  width: 100%;
   height: var(--tab-h);
   padding-bottom: var(--safe-bottom);
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  background: rgba(255, 255, 255, 0.94);
+  background: #fff;
   border-top: 1px solid #d7e6d4;
   box-shadow: 0 -8px 24px rgba(20, 51, 28, 0.06);
   z-index: 20;

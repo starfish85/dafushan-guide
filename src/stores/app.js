@@ -29,14 +29,14 @@ export const FONT_OPTIONS = [
 
 export function applyFontToDocument() {
   document.documentElement.dataset.font = app.fontSize
-  document.documentElement.style.height = 'auto'
-  document.documentElement.style.overflowY = 'scroll'
-  document.body.style.height = 'auto'
-  document.body.style.overflow = 'visible'
+  document.documentElement.style.height = '100%'
+  document.documentElement.style.overflow = 'hidden'
+  document.body.style.height = '100%'
+  document.body.style.overflow = 'hidden'
   const root = document.getElementById('app')
   if (root) {
-    root.style.height = 'auto'
-    root.style.overflow = 'visible'
+    root.style.height = '100%'
+    root.style.overflow = 'hidden'
   }
 }
 

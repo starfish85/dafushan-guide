@@ -24,7 +24,9 @@ onMounted(() => {
 <template>
   <div class="app-shell" :data-font="app.fontSize">
     <ForestBackdrop />
-    <router-view />
+    <div class="app-main">
+      <router-view />
+    </div>
     <TabBar v-if="showTab" />
     <div v-if="app.toast" class="toast" role="status">{{ app.toast }}</div>
   </div>

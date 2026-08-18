@@ -127,10 +127,11 @@ function leave() {
 .nav-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  height: 100svh;
-  padding-bottom: var(--tab-h);
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding-bottom: 8px;
   background: var(--bg);
 }
 .back {
